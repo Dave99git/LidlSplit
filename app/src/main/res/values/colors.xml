@@ -2,5 +2,6 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="lidlBlue">#0050AA</color>
+    <color name="lidlBlue">#004aad</color>
+    <color name="grayText">#666666</color>
 </resources>
