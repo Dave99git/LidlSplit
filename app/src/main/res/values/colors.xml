@@ -7,4 +7,6 @@
     <color name="lightGray">#F5F5F5</color>
     <!-- Farbe fuer ausgewaehlte Navigationselemente und Buttons -->
     <color name="selectedBlue">#004aad</color>
+    <color name="tab_active">#004aad</color>    <!-- dunkelblau -->
+    <color name="tab_inactive">#3574BA</color>  <!-- helleres blau -->
 </resources>

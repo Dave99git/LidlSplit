@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="@color/selectedBlue" android:state_checked="true"/>
-    <item android:color="@color/white"/>
+    <!-- Aktiver Tab -->
+    <item android:color="#3574BA" android:state_checked="true" />
+    <!-- Inaktive Tabs -->
+    <item android:color="@android:color/white" />
 </selector>

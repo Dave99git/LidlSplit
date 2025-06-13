@@ -43,9 +43,9 @@
         android:id="@+id/btnAddPurchase"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_button"
-        android:textColor="@color/white"
-        android:text="@string/add_purchase"
+        android:backgroundTint="#004aad"
+        android:textColor="@android:color/white"
+        android:text="+ Einkauf hinzufügen"
         android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -56,20 +56,43 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/btnAddPurchase"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
+    <LinearLayout
+        android:id="@+id/customFooter"
         android:layout_width="0dp"
         android:layout_height="64dp"
-        android:background="@color/lidlBlue"
-        app:itemTextColor="@color/bottom_nav_text"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/navPurchases"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Einkäufe"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:background="@color/tab_active"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/navPeople"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Personen"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:background="@color/tab_inactive"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
