@@ -5,5 +5,6 @@
     <color name="lidlBlue">#004aad</color>
     <color name="grayText">#666666</color>
     <color name="lightGray">#F5F5F5</color>
-    <color name="selectedBlue">#3574BA</color>
+    <!-- Farbe fuer ausgewaehlte Navigationselemente und Buttons -->
+    <color name="selectedBlue">#004aad</color>
 </resources>
