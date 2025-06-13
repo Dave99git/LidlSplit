@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="lidlBlue">#004aad</color>
     <color name="grayText">#666666</color>
+    <color name="lightGray">#F5F5F5</color>
 </resources>
