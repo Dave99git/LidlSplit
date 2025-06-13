@@ -63,10 +63,10 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
-        android:layout_height="36dp"
+        android:layout_height="64dp"
         android:background="@color/lidlBlue"
-        app:itemIconTint="@color/white"
-        app:itemTextColor="@color/white"
+        app:itemTextColor="@color/bottom_nav_text"
+        app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
