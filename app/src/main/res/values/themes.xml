@@ -1,0 +1,19 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.LidlSplit" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <!-- Haupt-Theme deiner App -->
+    <style name="Theme.LidlSplit" parent="Base.Theme.LidlSplit" />
+
+    <!-- Splash-Theme ohne ActionBar und mit weißem Hintergrund -->
+    <style name="Theme.App.Splash" parent="Base.Theme.LidlSplit">
+        <!-- sorgt für weißen Hintergrund -->
+        <item name="android:windowBackground">@android:color/white</item>
+        <!-- entfernt Titel- / ActionBar -->
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+    </style>
+</resources>

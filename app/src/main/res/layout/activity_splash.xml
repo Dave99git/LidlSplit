@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/splashRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- Linke Hälfte in Blau (50% der Breite, 100% der Höhe) -->
+    <View
+        android:id="@+id/leftHalf"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/lidlBlue"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent="0.5"/>
+
+    <!-- Logo zentriert -->
+    <ImageView
+        android:id="@+id/imgSplashLogo"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/lidl_split_logo"
+        app:layout_constraintWidth_default="wrap"
+        app:layout_constraintHeight_default="wrap"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintWidth_percent="0.7"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
