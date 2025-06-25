@@ -20,6 +20,17 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         this.people = people;
     }
 
+    public void addPerson(Person person) {
+        people.add(person);
+        notifyItemInserted(people.size() - 1);
+    }
+
+    public void updateData(List<Person> newPeople) {
+        people.clear();
+        people.addAll(newPeople);
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public PersonViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
