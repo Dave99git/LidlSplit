@@ -12,4 +12,9 @@
     <string name="action_delete">Löschen</string>
     <string name="confirm_delete_person">Möchtest du diese Person wirklich löschen?</string>
     <string name="hint_person_name">Name</string>
+    <string name="title_new_purchase">Neuer Einkauf</string>
+    <string name="upload_receipt">Upload Kassenbon</string>
+    <string name="checkbox_paid">bezahlt</string>
+    <string name="create_invoice">Rechnung erstellen</string>
+    <string name="error_assign_person">Bitte weise allen Artikeln mindestens eine Person zu.</string>
 </resources>
