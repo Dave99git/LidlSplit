@@ -33,8 +33,10 @@ public class MainActivity extends AppCompatActivity {
 
         // "+ Einkauf hinzufügen" Button
         Button addButton = findViewById(R.id.btnAddPurchase);
-        addButton.setOnClickListener(v ->
-                Toast.makeText(this, "+ Einkauf hinzufügen", Toast.LENGTH_SHORT).show());
+        addButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, NewPurchaseActivity.class);
+            startActivity(intent);
+        });
 
         // Filter-Button
         ImageButton filterButton = findViewById(R.id.btnFilter);
