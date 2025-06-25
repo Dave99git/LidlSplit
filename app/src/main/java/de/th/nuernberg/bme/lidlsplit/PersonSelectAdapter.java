@@ -37,7 +37,7 @@ public class PersonSelectAdapter extends RecyclerView.Adapter<PersonSelectAdapte
 
     @Override
     public void onBindViewHolder(@NonNull PersonSelectViewHolder holder, int position) {
-        Person person = people.get(position);
+        final Person person = people.get(position);
         holder.name.setText(person.getName());
         holder.checkBox.setOnCheckedChangeListener(null);
         holder.checkBox.setChecked(selectedIds.contains(person.getId()));
