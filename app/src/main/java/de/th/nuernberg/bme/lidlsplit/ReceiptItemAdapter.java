@@ -70,14 +70,14 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
         holder.price.setText(String.format("%.2f€", item.getPrice()));
         holder.container.removeAllViews();
 
-        Context ctx = holder.container.getContext();
-        CheckBox allBox = new CheckBox(ctx);
+        final Context ctx = holder.container.getContext();
+        final CheckBox allBox = new CheckBox(ctx);
         allBox.setText("Alle");
         holder.container.addView(allBox);
 
-        List<CheckBox> personBoxes = new ArrayList<>();
+        final List<CheckBox> personBoxes = new ArrayList<>();
         for (Person p : persons) {
-            CheckBox cb = new CheckBox(ctx);
+            final CheckBox cb = new CheckBox(ctx);
             cb.setText(p.getName());
             cb.setTag(p.getId());
             holder.container.addView(cb);
@@ -89,28 +89,29 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
             selected = new HashSet<>();
             assignments.put(position, selected);
         }
+        final Set<Long> finalSelected = selected;
 
-        for (CheckBox cb : personBoxes) {
-            long id = (long) cb.getTag();
-            cb.setChecked(selected.contains(id));
+        for (final CheckBox cb : personBoxes) {
+            final long id = (long) cb.getTag();
+            cb.setChecked(finalSelected.contains(id));
             cb.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
-                    selected.add(id);
+                    finalSelected.add(id);
                 } else {
-                    selected.remove(id);
+                    finalSelected.remove(id);
                     allBox.setOnCheckedChangeListener(null);
                     allBox.setChecked(false);
-                    allBox.setOnCheckedChangeListener((b, checked) -> toggleAll(checked, personBoxes, selected));
+                    allBox.setOnCheckedChangeListener((b, checked) -> toggleAll(checked, personBoxes, finalSelected));
                 }
             });
         }
 
-        allBox.setOnCheckedChangeListener((buttonView, isChecked) -> toggleAll(isChecked, personBoxes, selected));
+        allBox.setOnCheckedChangeListener((buttonView, isChecked) -> toggleAll(isChecked, personBoxes, finalSelected));
     }
 
-    private void toggleAll(boolean checked, List<CheckBox> boxes, Set<Long> sel) {
+    private void toggleAll(boolean checked, final List<CheckBox> boxes, final Set<Long> sel) {
         if (checked) {
-            for (CheckBox cb : boxes) {
+            for (final CheckBox cb : boxes) {
                 cb.setOnCheckedChangeListener(null);
                 cb.setChecked(true);
                 cb.setOnCheckedChangeListener((buttonView, isC) -> {
@@ -123,7 +124,7 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
                 sel.add((Long) cb.getTag());
             }
         } else {
-            for (CheckBox cb : boxes) {
+            for (final CheckBox cb : boxes) {
                 cb.setOnCheckedChangeListener(null);
                 cb.setChecked(false);
                 cb.setOnCheckedChangeListener((buttonView, isC) -> {

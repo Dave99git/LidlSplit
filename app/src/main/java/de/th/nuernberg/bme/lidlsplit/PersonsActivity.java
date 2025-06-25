@@ -66,14 +66,14 @@ public class PersonsActivity extends AppCompatActivity {
     private void showAddPersonDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_person, null);
-        EditText etName = view.findViewById(R.id.etPersonName);
+        final EditText etName = view.findViewById(R.id.etPersonName);
         builder.setView(view)
                 .setTitle(R.string.dialog_add_person_title)
                 .setNegativeButton(R.string.action_cancel, null)
                 .setPositiveButton(R.string.action_save, null);
-        AlertDialog dialog = builder.create();
+        final AlertDialog dialog = builder.create();
         dialog.setOnShowListener(d -> {
-            Button save = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            final Button save = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             save.setOnClickListener(v -> {
                 String name = etName.getText().toString().trim();
                 if (name.isEmpty()) {

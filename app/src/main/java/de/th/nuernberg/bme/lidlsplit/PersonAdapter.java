@@ -56,18 +56,18 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         return people.size();
     }
 
-    private void showEditDialog(Context context, Person person, int position) {
+    private void showEditDialog(final Context context, final Person person, final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View view = LayoutInflater.from(context).inflate(R.layout.dialog_add_person, null);
-        EditText etName = view.findViewById(R.id.etPersonName);
+        final EditText etName = view.findViewById(R.id.etPersonName);
         etName.setText(person.getName());
         builder.setView(view)
                 .setTitle(R.string.dialog_edit_person_title)
                 .setNegativeButton(R.string.action_cancel, null)
                 .setPositiveButton(R.string.action_save, null);
-        AlertDialog dialog = builder.create();
+        final AlertDialog dialog = builder.create();
         dialog.setOnShowListener(d -> {
-            Button save = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            final Button save = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             save.setOnClickListener(v -> {
                 String newName = etName.getText().toString().trim();
                 if (newName.isEmpty()) {
@@ -83,7 +83,7 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         dialog.show();
     }
 
-    private void showDeleteDialog(Context context, Person person, int position) {
+    private void showDeleteDialog(final Context context, final Person person, final int position) {
         new AlertDialog.Builder(context)
                 .setMessage(R.string.confirm_delete_person)
                 .setNegativeButton(R.string.action_cancel, null)
