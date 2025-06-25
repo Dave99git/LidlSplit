@@ -75,4 +75,15 @@ public class AppDatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_NAME, newName);
         return db.update(TABLE_PERSONS, values, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
     }
+
+    /**
+     * Delete a person from the database.
+     *
+     * @param id database id of the person to remove
+     * @return number of affected rows
+     */
+    public int deletePerson(long id) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(TABLE_PERSONS, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
+    }
 }

@@ -31,6 +31,16 @@
             android:src="@drawable/edit"
             android:tint="@color/grayText"
             android:contentDescription="Bearbeiten" />
+
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/delete"
+            android:tint="@color/grayText"
+            android:contentDescription="Löschen" />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

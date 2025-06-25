@@ -9,5 +9,7 @@
     <string name="dialog_edit_person_title">Person bearbeiten</string>
     <string name="action_cancel">Abbrechen</string>
     <string name="action_save">Speichern</string>
+    <string name="action_delete">Löschen</string>
+    <string name="confirm_delete_person">Möchtest du diese Person wirklich löschen?</string>
     <string name="hint_person_name">Name</string>
 </resources>
