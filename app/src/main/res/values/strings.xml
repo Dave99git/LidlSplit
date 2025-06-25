@@ -6,6 +6,7 @@
     <string name="add_person">+ Person hinzufügen</string>
     <string name="filter">Filter</string>
     <string name="dialog_add_person_title">Person hinzufügen</string>
+    <string name="dialog_edit_person_title">Person bearbeiten</string>
     <string name="action_cancel">Abbrechen</string>
     <string name="action_save">Speichern</string>
     <string name="hint_person_name">Name</string>

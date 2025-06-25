@@ -61,4 +61,18 @@ public class AppDatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return people;
     }
+
+    /**
+     * Update the name of a person in the database.
+     *
+     * @param id       database id of the person
+     * @param newName  new name to store
+     * @return number of affected rows
+     */
+    public int updatePerson(long id, String newName) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME, newName);
+        return db.update(TABLE_PERSONS, values, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
+    }
 }
