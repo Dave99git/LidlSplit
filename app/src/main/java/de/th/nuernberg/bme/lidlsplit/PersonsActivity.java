@@ -34,7 +34,7 @@ public class PersonsActivity extends AppCompatActivity {
         // RecyclerView
         RecyclerView recyclerView = findViewById(R.id.recyclerPersons);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new PersonAdapter(dbHelper.getAllPersons());
+        adapter = new PersonAdapter(dbHelper.getAllPersons(), dbHelper);
         recyclerView.setAdapter(adapter);
 
         // Add person button
