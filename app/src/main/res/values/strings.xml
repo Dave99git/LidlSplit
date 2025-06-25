@@ -17,4 +17,5 @@
     <string name="checkbox_paid">bezahlt</string>
     <string name="create_invoice">Rechnung erstellen</string>
     <string name="error_assign_person">Bitte weise allen Artikeln mindestens eine Person zu.</string>
+    <string name="dialog_select_persons_title">Personen auswählen</string>
 </resources>

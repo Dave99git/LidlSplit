@@ -29,14 +29,24 @@
             android:textSize="24sp" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerPersonsSelect"
-        android:layout_width="0dp"
+    <Button
+        android:id="@+id/btnAddPersonSelect"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/add_person"
         android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerLayout" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerPersonsSelect"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnAddPersonSelect" />
 
     <CheckBox
         android:id="@+id/cbPaid"

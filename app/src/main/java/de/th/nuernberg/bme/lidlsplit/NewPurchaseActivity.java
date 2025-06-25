@@ -32,6 +32,8 @@ public class NewPurchaseActivity extends AppCompatActivity {
     private AppDatabaseHelper dbHelper;
     private PersonSelectAdapter personAdapter;
     private ReceiptItemAdapter itemAdapter;
+    private final List<Person> selectedPersons = new ArrayList<>();
+    private RecyclerView itemRecycler;
     private final List<PurchaseItem> items = new ArrayList<>();
     private final ActivityResultLauncher<String> filePicker = registerForActivityResult(
             new ActivityResultContracts.GetContent(), this::processImage);
@@ -47,14 +49,17 @@ public class NewPurchaseActivity extends AppCompatActivity {
 
         dbHelper = new AppDatabaseHelper(this);
 
+        Button addPerson = findViewById(R.id.btnAddPersonSelect);
+        addPerson.setOnClickListener(v -> showPersonSelectDialog());
+
         RecyclerView personRecycler = findViewById(R.id.recyclerPersonsSelect);
         personRecycler.setLayoutManager(new LinearLayoutManager(this));
-        personAdapter = new PersonSelectAdapter(dbHelper.getAllPersons());
+        personAdapter = new PersonSelectAdapter(selectedPersons);
         personRecycler.setAdapter(personAdapter);
 
-        RecyclerView itemRecycler = findViewById(R.id.recyclerItems);
+        itemRecycler = findViewById(R.id.recyclerItems);
         itemRecycler.setLayoutManager(new LinearLayoutManager(this));
-        itemAdapter = new ReceiptItemAdapter(items, dbHelper.getAllPersons());
+        itemAdapter = new ReceiptItemAdapter(items, selectedPersons);
         itemRecycler.setAdapter(itemAdapter);
 
         Button upload = findViewById(R.id.btnUploadReceipt);
@@ -125,7 +130,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
         }
         Map<Long, Double> totals = itemAdapter.calculateTotals();
         StringBuilder sb = new StringBuilder();
-        for (Person p : dbHelper.getAllPersons()) {
+        for (Person p : selectedPersons) {
             Double value = totals.get(p.getId());
             if (value != null) {
                 sb.append(String.format(Locale.getDefault(), "%s: %.2f€\n", p.getName(), value));
@@ -137,5 +142,38 @@ public class NewPurchaseActivity extends AppCompatActivity {
     private void activateTab(TextView active, TextView inactive) {
         active.setBackgroundColor(ContextCompat.getColor(this, R.color.tab_active));
         inactive.setBackgroundColor(ContextCompat.getColor(this, R.color.tab_inactive));
+    }
+
+    private void showPersonSelectDialog() {
+        final List<Person> persons = dbHelper.getAllPersons();
+        final String[] names = new String[persons.size()];
+        final boolean[] checked = new boolean[persons.size()];
+        for (int i = 0; i < persons.size(); i++) {
+            Person p = persons.get(i);
+            names[i] = p.getName();
+            for (Person sel : selectedPersons) {
+                if (sel.getId() == p.getId()) {
+                    checked[i] = true;
+                    break;
+                }
+            }
+        }
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_select_persons_title)
+                .setMultiChoiceItems(names, checked, (dialog, which, isChecked) -> checked[which] = isChecked)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_save, (dialog, which) -> {
+                    selectedPersons.clear();
+                    for (int i = 0; i < persons.size(); i++) {
+                        if (checked[i]) {
+                            selectedPersons.add(persons.get(i));
+                        }
+                    }
+                    personAdapter.updateData(selectedPersons);
+                    itemAdapter = new ReceiptItemAdapter(items, selectedPersons);
+                    itemRecycler.setAdapter(itemAdapter);
+                })
+                .show();
     }
 }

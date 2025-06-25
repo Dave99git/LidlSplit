@@ -4,13 +4,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +20,13 @@ public class PersonSelectAdapter extends RecyclerView.Adapter<PersonSelectAdapte
 
     public PersonSelectAdapter(List<Person> people) {
         this.people = people;
+    }
+
+    public void updateData(List<Person> newPeople) {
+        people.clear();
+        people.addAll(newPeople);
+        selectedIds.clear();
+        notifyDataSetChanged();
     }
 
     public Set<Long> getSelectedIds() {
