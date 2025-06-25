@@ -10,13 +10,13 @@ import java.util.regex.Pattern;
 public class ReceiptParser {
 
     private static final Pattern ITEM_PATTERN =
-            Pattern.compile("^(.+?)\s+(-?[0-9]+,[0-9]{2})\s*A?$");
+            Pattern.compile("^(.+?)\\s+(-?[0-9]+,[0-9]{2})\\s*A?$");
     private static final Pattern TOTAL_PATTERN =
             Pattern.compile("(?i)zu\\s+zahlen.*?(-?[0-9]+,[0-9]{2})");
     private static final Pattern DATE_TIME_PATTERN =
-            Pattern.compile("(\d{2}\.\d{2}\.\d{4})\\s+(\d{2}:\d{2})");
+            Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})\\s+(\\d{2}:\\d{2})");
     private static final Pattern CITY_PATTERN =
-            Pattern.compile("(\d{5})\\s+(.+)");
+            Pattern.compile("(\\d{5})\\s+(.+)");
 
     public ReceiptData parse(String text) {
         List<PurchaseItem> items = new ArrayList<>();
