@@ -36,6 +36,10 @@
             android:exported="true"
             android:theme="@style/Theme.LidlSplit" />
 
+        <activity
+            android:name=".NewPurchaseActivity"
+            android:exported="true"
+            android:theme="@style/Theme.LidlSplit" />
 
     </application>
 
