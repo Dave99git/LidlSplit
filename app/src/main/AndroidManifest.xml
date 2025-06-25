@@ -31,6 +31,11 @@
             android:exported="true"
             android:theme="@style/Theme.LidlSplit" />
 
+        <activity
+            android:name=".PersonsActivity"
+            android:exported="true"
+            android:theme="@style/Theme.LidlSplit" />
+
 
     </application>
 

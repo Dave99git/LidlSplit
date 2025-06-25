@@ -3,5 +3,6 @@
     <string name="title_purchases">Einkäufe</string>
     <string name="title_people">Personen</string>
     <string name="add_purchase">+ Einkauf hinzufügen</string>
+    <string name="add_person">+ Person hinzufügen</string>
     <string name="filter">Filter</string>
 </resources>
