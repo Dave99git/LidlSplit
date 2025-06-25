@@ -3,6 +3,8 @@
     <style name="Base.Theme.LidlSplit" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:statusBarColor">@color/lidlBlue</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <!-- Haupt-Theme deiner App -->
