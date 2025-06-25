@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         navPeople.setOnClickListener(v -> {
             activateTab(navPeople, navPurchases);
             startActivity(new Intent(this, PersonsActivity.class));
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             finish();
         });
     }
