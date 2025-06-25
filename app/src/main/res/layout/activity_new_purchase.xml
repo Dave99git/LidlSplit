@@ -29,15 +29,26 @@
             android:textSize="24sp" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tvPersonLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Personen:"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout" />
+
     <Button
         android:id="@+id/btnAddPersonSelect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/add_person"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout" />
+        app:layout_constraintTop_toBottomOf="@id/tvPersonLabel" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerPersonsSelect"
