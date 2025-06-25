@@ -21,6 +21,7 @@ import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -94,25 +95,27 @@ public class NewPurchaseActivity extends AppCompatActivity {
     }
 
     private void parseText(String text) {
+        ReceiptParser parser = new ReceiptParser();
+        ReceiptData data = parser.parse(text);
+
         items.clear();
-        String[] lines = text.split("\n");
-        for (String line : lines) {
-            line = line.trim();
-            if (line.isEmpty()) continue;
-            String[] parts = line.split(" ");
-            if (parts.length < 2) continue;
-            String pricePart = parts[parts.length - 1].replace("€", "").replace(",", ".");
-            try {
-                double price = Double.parseDouble(pricePart);
-                StringBuilder nameBuilder = new StringBuilder();
-                for (int i = 0; i < parts.length - 1; i++) {
-                    if (i > 0) nameBuilder.append(' ');
-                    nameBuilder.append(parts[i]);
-                }
-                items.add(new PurchaseItem(nameBuilder.toString(), price));
-            } catch (NumberFormatException ignored) {
-            }
+        items.addAll(data.getItems());
+
+        StringBuilder sb = new StringBuilder();
+        if (data.getDateTime() != null) {
+            DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+            sb.append(df.format(data.getDateTime())).append("\n");
         }
+        if (data.getStreet() != null) {
+            sb.append(data.getStreet()).append("\n");
+        }
+        if (data.getCity() != null) {
+            sb.append(data.getCity()).append("\n");
+        }
+        if (data.getTotal() != 0.0) {
+            sb.append(String.format(Locale.getDefault(), "Gesamt: %.2f€", data.getTotal()));
+        }
+        tvResult.setText(sb.toString());
     }
 
     private void createInvoice() {
