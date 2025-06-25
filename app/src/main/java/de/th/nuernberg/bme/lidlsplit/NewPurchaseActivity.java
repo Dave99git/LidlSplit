@@ -170,7 +170,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
                             selectedPersons.add(persons.get(i));
                         }
                     }
-                    personAdapter.updateData(selectedPersons);
+                    personAdapter.updateData(new ArrayList<>(selectedPersons));
                     itemAdapter = new ReceiptItemAdapter(items, selectedPersons);
                     itemRecycler.setAdapter(itemAdapter);
                 })
