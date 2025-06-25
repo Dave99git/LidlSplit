@@ -48,6 +48,7 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         Person person = people.get(position);
         holder.name.setText(person.getName());
         holder.edit.setOnClickListener(v -> showEditDialog(v.getContext(), person, position));
+        holder.delete.setOnClickListener(v -> showDeleteDialog(v.getContext(), person, position));
     }
 
     @Override
@@ -82,14 +83,28 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         dialog.show();
     }
 
+    private void showDeleteDialog(Context context, Person person, int position) {
+        new AlertDialog.Builder(context)
+                .setMessage(R.string.confirm_delete_person)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_delete, (dialog, which) -> {
+                    dbHelper.deletePerson(person.getId());
+                    people.remove(position);
+                    notifyItemRemoved(position);
+                })
+                .show();
+    }
+
     static class PersonViewHolder extends RecyclerView.ViewHolder {
         final TextView name;
         final ImageButton edit;
+        final ImageButton delete;
 
         PersonViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.tvName);
             edit = itemView.findViewById(R.id.btnEdit);
+            delete = itemView.findViewById(R.id.btnDelete);
         }
     }
 }
