@@ -37,6 +37,8 @@
         android:textStyle="bold"
         android:textSize="16sp"
         android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerLayout" />
 
@@ -47,9 +49,15 @@
         android:text="@string/checkbox_paid"
         android:textStyle="bold"
         android:textSize="16sp"
+        android:visibility="gone"
         android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout" />
+        app:layout_constraintTop_toBottomOf="@id/btnAddPersonSelect"
+        app:layout_constraintBottom_toTopOf="@id/recyclerPersonsSelect" />
 
     <Button
         android:id="@+id/btnAddPersonSelect"
@@ -70,7 +78,7 @@
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnAddPersonSelect" />
+        app:layout_constraintTop_toBottomOf="@id/tvPaidLabel" />
 
     <Button
         android:id="@+id/btnUploadReceipt"

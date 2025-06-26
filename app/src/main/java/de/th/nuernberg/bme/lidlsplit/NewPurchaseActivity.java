@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -41,6 +42,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
     private TextView navPurchases;
     private TextView navPeople;
     private TextView tvResult;
+    private TextView tvPaidLabel;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -69,6 +71,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
         create.setOnClickListener(v -> createInvoice());
 
         tvResult = findViewById(R.id.tvResult);
+        tvPaidLabel = findViewById(R.id.tvPaidLabel);
 
         navPurchases = findViewById(R.id.navPurchases);
         navPeople = findViewById(R.id.navPeople);
@@ -173,6 +176,11 @@ public class NewPurchaseActivity extends AppCompatActivity {
                     personAdapter.updateData(new ArrayList<>(selectedPersons));
                     itemAdapter = new ReceiptItemAdapter(items, selectedPersons);
                     itemRecycler.setAdapter(itemAdapter);
+                    if (selectedPersons.isEmpty()) {
+                        tvPaidLabel.setVisibility(View.GONE);
+                    } else {
+                        tvPaidLabel.setVisibility(View.VISIBLE);
+                    }
                 })
                 .show();
     }
