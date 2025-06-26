@@ -108,6 +108,23 @@ public class ReceiptParser {
             }
         }
 
+        for (PurchaseItem item : items) {
+            Log.d("ReceiptParser", "Artikel: " + item.getName() + " / " + item.getPrice());
+        }
+        if (street != null || city != null) {
+            StringBuilder addr = new StringBuilder();
+            if (street != null) addr.append(street);
+            if (city != null) {
+                if (addr.length() > 0) addr.append(", ");
+                addr.append(city);
+            }
+            Log.d("ReceiptParser", "Adresse: " + addr.toString());
+        }
+        if (dateTime != null) {
+            Log.d("ReceiptParser", "Datum: " + dateTime.toString());
+        }
+        Log.d("ReceiptParser", "Gesamtpreis: " + total);
+
         return new ReceiptData(items, total, street, city, dateTime);
     }
 
@@ -185,6 +202,13 @@ public class ReceiptParser {
                 Log.d("ReceiptParser", "→ Datum erkannt: " + dateMatcher.group());
             }
         }
+
+        for (Artikel a : artikelListe) {
+            Log.d("ReceiptParser", "Artikel: " + a.name + " / " + a.preis);
+        }
+        Log.d("ReceiptParser", "Adresse: " + adresse);
+        Log.d("ReceiptParser", "Datum: " + datum);
+        Log.d("ReceiptParser", "Gesamtpreis: " + gesamtpreis);
 
         return artikelListe;
     }
