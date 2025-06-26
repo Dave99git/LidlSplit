@@ -118,6 +118,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
 
         items.clear();
         items.addAll(data.getItems());
+        Log.d("ArtikelUI", items.toString());
         if (items.isEmpty()) {
             itemRecycler.setVisibility(View.GONE);
         } else {
@@ -155,6 +156,8 @@ public class NewPurchaseActivity extends AppCompatActivity {
             Toast.makeText(this, getString(R.string.error_assign_person), Toast.LENGTH_LONG).show();
             return;
         }
+        itemAdapter.notifyDataSetChanged();
+        itemRecycler.setVisibility(View.VISIBLE);
         Map<Long, Double> totals = itemAdapter.calculateTotals();
         StringBuilder sb = new StringBuilder();
         for (Person p : selectedPersons) {
