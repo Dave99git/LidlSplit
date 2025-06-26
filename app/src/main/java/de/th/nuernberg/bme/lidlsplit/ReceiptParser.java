@@ -193,11 +193,19 @@ public class ReceiptParser {
             Matcher discMatcher = DISCOUNT_PATTERN.matcher(line);
             if (discMatcher.matches() && lastItem != null) {
                 double disc = parseDouble(discMatcher.group());
-                String oldName = lastItem.getName();
+
                 double newPrice = lastItem.getPrice() + disc;
-                lastItem = new PurchaseItem(oldName, newPrice);
-                items.set(items.size() - 1, lastItem);
-                Log.d("ReceiptParser", "Rabatt erkannt: " + disc + " f\u00fcr " + oldName + "; Neuer Preis: " + newPrice);
+                if (newPrice < 0) {
+                    Log.d("ReceiptParser", "Artikel entfernt wegen negativem Gesamtpreis nach Rabatt: " + lastItem.getName());
+                    items.remove(items.size() - 1);
+                    lastItem = null;
+                } else {
+                    lastItem = new PurchaseItem(lastItem.getName(), newPrice);
+                    items.set(items.size() - 1, lastItem);
+                    Log.d("ReceiptParser", "Rabatt erkannt (ohne expliziten Hinweis): " + disc + " → Neuer Preis: " + newPrice);
+                }
+
+                pendingName = null;
                 continue;
             }
             
