@@ -44,6 +44,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
     private TextView tvAddress;
     private TextView tvDate;
     private TextView tvTotal;
+    private TextView tvPurchaseHeader;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -76,6 +77,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
         tvAddress = findViewById(R.id.tvAddress);
         tvDate = findViewById(R.id.tvDate);
         tvTotal = findViewById(R.id.tvTotal);
+        tvPurchaseHeader = findViewById(R.id.tvPurchaseHeader);
 
         navPurchases = findViewById(R.id.navPurchases);
         navPeople = findViewById(R.id.navPeople);
@@ -114,6 +116,8 @@ public class NewPurchaseActivity extends AppCompatActivity {
         } else {
             itemRecycler.setVisibility(View.VISIBLE);
         }
+
+        tvPurchaseHeader.setVisibility(View.VISIBLE);
 
         tvResult.setText("");
 
