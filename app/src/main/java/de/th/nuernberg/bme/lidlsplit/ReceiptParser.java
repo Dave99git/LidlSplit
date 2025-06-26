@@ -252,16 +252,7 @@ public class ReceiptParser {
             if (priceMatcher.matches()) {
                 double price = parseDouble(priceMatcher.group(1));
 
-                if (pendingName != null) {
-                    // Preis gehört zu pendingName → normaler Artikel
-                    lastItem = new PurchaseItem(pendingName, price);
-                    items.add(lastItem);
-                    Log.d("ReceiptParser", "Erkannt: Artikel: " + pendingName + " / Preis: " + price);
-                    pendingName = null;
-                    continue;
-                }
-
-                if (price < 0 && lastItem != null) {
+                if (price < 0 && pendingName == null && lastItem != null) {
                     // Preisvorteil zu vorherigem Artikel
                     double newPrice = lastItem.getPrice() + price;
                     if (newPrice < 0) {
@@ -273,6 +264,15 @@ public class ReceiptParser {
                         items.set(items.size() - 1, lastItem);
                         Log.d("ReceiptParser", "Preisvorteil angewendet: " + price + " → Neuer Preis: " + newPrice);
                     }
+                    continue;
+                }
+
+                if (pendingName != null) {
+                    // Preis gehört zu pendingName → normaler Artikel
+                    lastItem = new PurchaseItem(pendingName, price);
+                    items.add(lastItem);
+                    Log.d("ReceiptParser", "Erkannt: Artikel: " + pendingName + " / Preis: " + price);
+                    pendingName = null;
                     continue;
                 }
             }
