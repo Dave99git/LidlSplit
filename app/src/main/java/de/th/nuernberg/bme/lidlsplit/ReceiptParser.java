@@ -442,9 +442,8 @@ public class ReceiptParser {
         List<Artikel> artikelListe = new ArrayList<>();
 
         Pattern textOnly = Pattern.compile("[A-Za-zÄÖÜäöüß\\s\\-.]+");
-        Pattern priceOnly = Pattern.compile("[-+]?\\d{1,3},\\d{2}");
+        Pattern priceOnly = PRICE_ONLY_PATTERN;
         Pattern datePattern = Pattern.compile("\\d{2}\\.\\d{2}\\.\\d{4}");
-        Pattern itemLine = Pattern.compile("([A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß0-9\\s\\-.]*?)\\s+([-+]?\\d{1,3},\\d{2})");
 
         String[] lines = text.split("\n");
         String lastName = null;
@@ -482,7 +481,7 @@ public class ReceiptParser {
                     String next = lines[j].trim();
                     Matcher pm = priceOnly.matcher(next);
                     if (pm.matches()) {
-                        gesamtpreis = parseDouble(pm.group());
+                        gesamtpreis = parseDouble(pm.group(1));
                         break;
                     }
                 }
@@ -495,11 +494,11 @@ public class ReceiptParser {
                 continue;
             }
 
-            // Preisvorteil (nicht gesamt) verrechnen
-            if (lower.contains("preisvorteil") && !lower.contains("gesamt") && !artikelListe.isEmpty()) {
-                Matcher pm = priceOnly.matcher(line);
-                if (pm.find()) {
-                    double diff = parseDouble(pm.group());
+            // Preisvorteil (nicht gesamt) verrechnen und Zeile ignorieren
+            if (lower.contains("preisvorteil")) {
+                Matcher advMatcher = ADVANTAGE_PATTERN.matcher(line);
+                if (advMatcher.find() && !artikelListe.isEmpty()) {
+                    double diff = parseDouble(advMatcher.group(1));
                     Artikel last = artikelListe.get(artikelListe.size() - 1);
                     double newPrice = last.preis + diff;
                     if (newPrice < 0) {
@@ -509,11 +508,12 @@ public class ReceiptParser {
                         last.preis = newPrice;
                     }
                 }
+                // Preisvorteil-Zeilen nie als eigenen Artikel aufführen
                 continue;
             }
 
             // Artikelzeile mit Name + Preis
-            Matcher itemMatcher = itemLine.matcher(line);
+            Matcher itemMatcher = ITEM_PATTERN.matcher(line);
             if (itemMatcher.matches()) {
                 artikelListe.add(new Artikel(itemMatcher.group(1).trim(), parseDouble(itemMatcher.group(2))));
                 lastName = null;
@@ -523,7 +523,7 @@ public class ReceiptParser {
             // Nur Preiszeile
             Matcher priceMatcher = priceOnly.matcher(line);
             if (priceMatcher.matches() && lastName != null) {
-                artikelListe.add(new Artikel(lastName, parseDouble(priceMatcher.group())));
+                artikelListe.add(new Artikel(lastName, parseDouble(priceMatcher.group(1))));
                 lastName = null;
                 continue;
             }
