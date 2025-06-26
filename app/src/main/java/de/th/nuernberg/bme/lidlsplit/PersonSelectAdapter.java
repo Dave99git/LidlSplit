@@ -9,14 +9,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class PersonSelectAdapter extends RecyclerView.Adapter<PersonSelectAdapter.PersonSelectViewHolder> {
 
     private final List<Person> people;
-    private final Set<Long> selectedIds = new HashSet<>();
+    /** ID of the currently selected payer or -1 if none selected */
+    private long payerId = -1;
 
     public PersonSelectAdapter(List<Person> people) {
         this.people = people;
@@ -25,12 +24,15 @@ public class PersonSelectAdapter extends RecyclerView.Adapter<PersonSelectAdapte
     public void updateData(List<Person> newPeople) {
         people.clear();
         people.addAll(newPeople);
-        selectedIds.clear();
+        payerId = -1;
         notifyDataSetChanged();
     }
 
-    public Set<Long> getSelectedIds() {
-        return new HashSet<>(selectedIds);
+    /**
+     * Returns the currently selected payer id or -1 if none was chosen.
+     */
+    public long getPayerId() {
+        return payerId;
     }
 
     @NonNull
@@ -45,12 +47,13 @@ public class PersonSelectAdapter extends RecyclerView.Adapter<PersonSelectAdapte
         final Person person = people.get(position);
         holder.name.setText(person.getName());
         holder.checkBox.setOnCheckedChangeListener(null);
-        holder.checkBox.setChecked(selectedIds.contains(person.getId()));
+        holder.checkBox.setChecked(person.getId() == payerId);
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                selectedIds.add(person.getId());
-            } else {
-                selectedIds.remove(person.getId());
+                payerId = person.getId();
+                notifyDataSetChanged();
+            } else if (payerId == person.getId()) {
+                payerId = -1;
             }
         });
     }
