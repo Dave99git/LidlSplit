@@ -171,7 +171,7 @@ public class ReceiptParser {
                     }
                 }
 
-                // Wenn Preis nicht in derselben Zeile, dann evtl. nächste Zeile
+                // Falls kein Preis im gleichen line gefunden → nächste Zeile prüfen
                 if (Double.isNaN(diff) && i + 1 < lines.length) {
                     String nextLine = lines[i + 1].trim();
                     Matcher pm = PRICE_ONLY_PATTERN.matcher(nextLine);
