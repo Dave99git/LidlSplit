@@ -12,6 +12,16 @@ import java.util.regex.Pattern;
 public class ReceiptParser {
 
     /**
+     * Simple parsing API used by some older components of the app. The fields
+     * below are populated by {@link #parseBon(String)}. They do not interfere
+     * with the newer {@link #parse(String)} method which returns a
+     * {@link ReceiptData} object.
+     */
+    public static String adresse = "";
+    public static String datum = "";
+    public static double gesamtpreis = 0.0;
+
+    /**
      * Matches a single receipt line consisting of the item name followed by a price. The
      * recognised receipts occasionally contain additional trailing characters such as an euro
      * sign or the letter "A" used for deposits. These extras should be ignored when parsing.
@@ -100,7 +110,75 @@ public class ReceiptParser {
         return new ReceiptData(items, total, street, city, dateTime);
     }
 
-    private double parseDouble(String value) {
+    /**
+     * Parses a receipt into a simple list of {@link Artikel} objects and
+     * populates the static fields {@link #adresse}, {@link #datum} and
+     * {@link #gesamtpreis}. This method is intentionally simple and primarily
+     * used for unit tests in this kata.
+     */
+    public static List<Artikel> parseBon(String text) {
+        adresse = "";
+        datum = "";
+        gesamtpreis = 0.0;
+
+        List<Artikel> artikelListe = new ArrayList<>();
+        String[] lines = text.split("\n");
+        if (lines.length > 0) {
+            adresse = lines[0].trim();
+        }
+        if (lines.length > 1) {
+            adresse = adresse.isEmpty() ? lines[1].trim()
+                    : adresse + ", " + lines[1].trim();
+        }
+
+        Artikel lastArtikel = null;
+        Pattern itemPattern = Pattern.compile("^(.+?)\\s+(\\d+[.,]?\\d*)\\s*[A-Z]?$");
+        Pattern advPattern = Pattern.compile("(?i)preisvorteil\\s+(-?\\d+[.,]?\\d*)");
+        Pattern totalPattern = Pattern.compile("(?i)(gesamtsumme|gesamt|zu\\s+zahlen).*?(\\d+[.,]?\\d*)");
+        Pattern datePattern = Pattern.compile("\\d{2}\\.\\d{2}\\.\\d{4}");
+
+        for (int i = 2; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+
+            Matcher advMatcher = advPattern.matcher(line);
+            if (advMatcher.matches() && lastArtikel != null) {
+                double diff = parseDouble(advMatcher.group(1));
+                lastArtikel.preis += diff;
+                if (lastArtikel.preis < 0) {
+                    artikelListe.remove(artikelListe.size() - 1);
+                    lastArtikel = null;
+                }
+                continue;
+            }
+
+            Matcher itemMatcher = itemPattern.matcher(line);
+            if (itemMatcher.matches()) {
+                String name = itemMatcher.group(1).trim();
+                double preis = parseDouble(itemMatcher.group(2));
+                lastArtikel = new Artikel(name, preis);
+                artikelListe.add(lastArtikel);
+                continue;
+            }
+
+            Matcher totalMatcher = totalPattern.matcher(line);
+            if (totalMatcher.find()) {
+                gesamtpreis = parseDouble(totalMatcher.group(2));
+                continue;
+            }
+
+            Matcher dateMatcher = datePattern.matcher(line);
+            if (dateMatcher.matches()) {
+                datum = dateMatcher.group();
+            }
+        }
+
+        return artikelListe;
+    }
+
+    private static double parseDouble(String value) {
         return Double.parseDouble(value.replace(",", "."));
     }
 }
