@@ -392,6 +392,11 @@ public class ReceiptParser {
             }
 
             if (priceText != null && rowText.length() > 0) {
+                // Entferne " A" am Ende des Artikelnamens
+                if (rowText.endsWith(" A")) {
+                    rowText = rowText.substring(0, rowText.length() - 2).trim();
+                }
+
                 double price = parseGermanPrice(priceText);
                 lastItem = new PurchaseItem(rowText, price);
                 items.add(lastItem);
@@ -417,7 +422,11 @@ public class ReceiptParser {
                             nb.append(pe.getText());
                         }
                         double price = parseGermanPrice(priceText);
-                        lastItem = new PurchaseItem(nb.toString().trim(), price);
+                        String name = nb.toString().trim();
+                        if (name.endsWith(" A")) {
+                            name = name.substring(0, name.length() - 2).trim();
+                        }
+                        lastItem = new PurchaseItem(name, price);
                         items.add(lastItem);
                         pending = null;
                     }
