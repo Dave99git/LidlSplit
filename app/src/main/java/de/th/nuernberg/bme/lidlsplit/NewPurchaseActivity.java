@@ -21,6 +21,7 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
+import com.google.mlkit.vision.text.Text;
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
@@ -100,7 +101,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
             TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
             recognizer.process(image)
                     .addOnSuccessListener(result -> {
-                        parseText(result.getText());
+                        parseOcrResult(result);
                         itemAdapter.notifyDataSetChanged();
                     })
                     .addOnFailureListener(e -> Toast.makeText(this, "OCR failed", Toast.LENGTH_SHORT).show());
@@ -109,16 +110,14 @@ public class NewPurchaseActivity extends AppCompatActivity {
         }
     }
 
-    private void parseText(String text) {
-        Log.d("OCR", "Erkannter Bon-Text:\n" + text);
-        Log.d("OCR", "Starte Parsing des OCR-Textes…");
+    private void parseOcrResult(Text ocrText) {
+        Log.d("OCR", "Starte Parsing des OCR-Ergebnisses…");
         ReceiptParser parser = new ReceiptParser();
-        ReceiptData data = parser.parse(text);
-        Log.d("OCR", "Parsing abgeschlossen, Artikelanzahl: " + data.getItems().size());
+        List<PurchaseItem> boxItems = parser.parseOcr(ocrText);
+        ReceiptData meta = parser.parse(ocrText.getText());
 
         items.clear();
-        items.addAll(data.getItems());
-        Log.d("ArtikelUI", items.toString());
+        items.addAll(boxItems);
         if (items.isEmpty()) {
             itemRecycler.setVisibility(View.GONE);
         } else {
@@ -127,29 +126,30 @@ public class NewPurchaseActivity extends AppCompatActivity {
 
         tvResult.setText("");
 
-        if (data.getDateTime() != null) {
+        if (meta.getDateTime() != null) {
             DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-            tvDate.setText(df.format(data.getDateTime()));
+            tvDate.setText(df.format(meta.getDateTime()));
         } else {
             tvDate.setText("");
         }
 
         StringBuilder addr = new StringBuilder();
-        if (data.getStreet() != null) {
-            addr.append(data.getStreet());
+        if (meta.getStreet() != null) {
+            addr.append(meta.getStreet());
         }
-        if (data.getCity() != null) {
+        if (meta.getCity() != null) {
             if (addr.length() > 0) addr.append("\n");
-            addr.append(data.getCity());
+            addr.append(meta.getCity());
         }
         tvAddress.setText(addr.toString());
 
-        if (data.getTotal() != 0.0) {
-            tvTotal.setText(getString(R.string.total_label, data.getTotal()));
+        if (meta.getTotal() != 0.0) {
+            tvTotal.setText(getString(R.string.total_label, meta.getTotal()));
         } else {
             tvTotal.setText("");
         }
     }
+
 
     private void createInvoice() {
         if (!itemAdapter.allItemsAssigned()) {
