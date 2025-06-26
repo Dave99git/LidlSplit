@@ -179,49 +179,65 @@ public class ReceiptParser {
         Pattern pricePattern = Pattern.compile("^-?[0-9]{1,3},[0-9]{2}$");
         Pattern datePattern = Pattern.compile("\\b(\\d{2}\\.\\d{2}\\.\\d{2,4})\\b");
 
-        for (int i = 0; i < lines.length - 1; i++) {
+        if (lines.length > 0) {
+            address = lines[0].trim();
+        }
+        if (lines.length > 1 && lines[1].trim().matches(".*\\d{5}.*")) {
+            address += (address.isEmpty() ? "" : ", ") + lines[1].trim();
+        }
+
+        for (int i = 0; i < lines.length; i++) {
             String currentLine = lines[i].trim();
-            String nextLine = lines[i + 1].trim();
-
             Log.d("ReceiptParser", "Zeile[" + i + "]: " + currentLine);
-
-            if (i < 5 && currentLine.matches(".*\\d{5}\\s+.*")) {
-                address += (address.isEmpty() ? "" : ", ") + currentLine;
-            }
 
             Matcher dateMatcher = datePattern.matcher(currentLine);
             if (dateMatcher.find()) {
                 date = dateMatcher.group(1);
             }
 
-            if (!currentLine.matches(".*\\d.*") && pricePattern.matcher(nextLine).matches()) {
-                String name = currentLine;
-                double price = parseGermanPrice(nextLine);
-
-                if (name.toLowerCase().contains("preisvorteil") && !articleList.isEmpty()) {
-                    Article last = articleList.get(articleList.size() - 1);
-                    last.setPrice(last.getPrice() - price);
-                    i++;
-                    continue;
-                }
-
-                articleList.add(new Article(name, price));
-                i++;
-                continue;
-            }
-
-            Matcher inlineItem = Pattern.compile("^(.+)\\s+(-?[0-9]{1,3},[0-9]{2})\\s*[A-Z]?$").matcher(currentLine);
-            if (inlineItem.matches()) {
-                String name = inlineItem.group(1).trim();
-                double price = parseGermanPrice(inlineItem.group(2));
-                articleList.add(new Article(name, price));
-            }
-
-            if (currentLine.toLowerCase().contains("gesamt") || currentLine.toLowerCase().contains("summe")) {
-                Matcher m = Pattern.compile(".*?(-?[0-9]{1,3},[0-9]{2})").matcher(currentLine);
+            String lower = currentLine.toLowerCase();
+            if (lower.contains("gesamt") || lower.contains("summe")) {
+                Matcher m = Pattern.compile("(-?[0-9]{1,3},[0-9]{2})").matcher(currentLine);
                 if (m.find()) {
                     totalPrice = parseGermanPrice(m.group(1));
                 }
+                continue;
+            }
+
+            if (lower.contains("pfand") || lower.contains("girocard") || lower.contains("kartenzahlung") ||
+                    lower.contains("ust-id") || lower.contains("beleg-nr") || lower.contains("seriennr")) {
+                continue;
+            }
+
+            if (lower.contains("preisvorteil") && !articleList.isEmpty()) {
+                Matcher m = Pattern.compile("(-?[0-9]{1,3},[0-9]{2})").matcher(currentLine);
+                if (m.find()) {
+                    double adv = parseGermanPrice(m.group(1));
+                    Article last = articleList.get(articleList.size() - 1);
+                    last.setPrice(last.getPrice() + adv);
+                }
+                continue;
+            }
+
+            if (i + 1 < lines.length) {
+                String nextLine = lines[i + 1].trim();
+                if (pricePattern.matcher(nextLine).matches() && !pricePattern.matcher(currentLine).matches()) {
+                    articleList.add(new Article(currentLine, parseGermanPrice(nextLine)));
+                    i++; // skip price line
+                    continue;
+                }
+            }
+
+            Matcher inlineItem = Pattern.compile("^(.+?)\\s+(-?[0-9]{1,3},[0-9]{2})\\s*[A-Z]?$").matcher(currentLine);
+            if (inlineItem.matches()) {
+                String name = inlineItem.group(1).trim();
+                if (name.toLowerCase().contains("pfand") || name.toLowerCase().contains("girocard") ||
+                        name.toLowerCase().contains("kartenzahlung") || name.toLowerCase().contains("ust-id") ||
+                        name.toLowerCase().contains("beleg-nr") || name.toLowerCase().contains("seriennr")) {
+                    continue;
+                }
+                double price = parseGermanPrice(inlineItem.group(2));
+                articleList.add(new Article(name, price));
             }
         }
 
