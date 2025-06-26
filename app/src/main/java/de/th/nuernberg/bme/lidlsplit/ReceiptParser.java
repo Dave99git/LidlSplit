@@ -249,13 +249,33 @@ public class ReceiptParser {
             }
             
             Matcher priceMatcher = PRICE_ONLY_PATTERN.matcher(line);
-            if (priceMatcher.matches() && pendingName != null) {
+            if (priceMatcher.matches()) {
                 double price = parseDouble(priceMatcher.group(1));
-                lastItem = new PurchaseItem(pendingName, price);
-                Log.d("ReceiptParser", "Erkannt: Artikel: " + pendingName + " / Preis: " + price);
-                items.add(lastItem);
-                pendingName = null;
-                continue;
+
+                if (price < 0 && lastItem != null) {
+                    // Preisvorteil erkannt → auf vorherigen Artikel anwenden
+                    double newPrice = lastItem.getPrice() + price;
+                    if (newPrice < 0) {
+                        Log.d("ReceiptParser", "Artikel entfernt wegen negativem Gesamtpreis: " + lastItem.getName());
+                        items.remove(items.size() - 1);
+                        lastItem = null;
+                    } else {
+                        lastItem = new PurchaseItem(lastItem.getName(), newPrice);
+                        items.set(items.size() - 1, lastItem);
+                        Log.d("ReceiptParser", "Preisvorteil angewendet: " + price + " → Neuer Preis: " + newPrice);
+                    }
+                    pendingName = null;
+                    continue;
+                }
+
+                if (pendingName != null) {
+                    // Normaler Artikel mit Preis
+                    lastItem = new PurchaseItem(pendingName, price);
+                    Log.d("ReceiptParser", "Erkannt: Artikel: " + pendingName + " / Preis: " + price);
+                    items.add(lastItem);
+                    pendingName = null;
+                    continue;
+                }
             }
 
             Matcher itemMatcher = ITEM_PATTERN.matcher(line);
