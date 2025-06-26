@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import android.util.Log;
 
 public class ReceiptParser {
 
@@ -140,6 +141,7 @@ public class ReceiptParser {
 
         for (int i = 2; i < lines.length; i++) {
             String line = lines[i].trim();
+            Log.d("ReceiptParser", "Zeile: '" + line + "'");
             if (line.isEmpty()) {
                 continue;
             }
@@ -156,6 +158,7 @@ public class ReceiptParser {
                     artikelListe.remove(artikelListe.size() - 1);
                     lastArtikel = null;
                 }
+                Log.d("ReceiptParser", "→ Preisvorteil erkannt: " + advMatcher.group(1));
                 continue;
             }
 
@@ -165,18 +168,21 @@ public class ReceiptParser {
                 double preis = parseDouble(itemMatcher.group(2));
                 lastArtikel = new Artikel(name, preis);
                 artikelListe.add(lastArtikel);
+                Log.d("ReceiptParser", "→ Artikel erkannt: " + itemMatcher.group(1) + " / " + itemMatcher.group(2));
                 continue;
             }
 
             Matcher totalMatcher = totalPattern.matcher(line);
             if (totalMatcher.find()) {
                 gesamtpreis = parseDouble(totalMatcher.group(2));
+                Log.d("ReceiptParser", "→ Gesamtpreis erkannt: " + totalMatcher.group(2));
                 continue;
             }
 
             Matcher dateMatcher = datePattern.matcher(line);
             if (dateMatcher.find()) {
                 datum = dateMatcher.group(1);
+                Log.d("ReceiptParser", "→ Datum erkannt: " + dateMatcher.group());
             }
         }
 

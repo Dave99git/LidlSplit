@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
+import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -103,6 +104,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
     }
 
     private void parseText(String text) {
+        Log.d("OCR", "Erkannter Bon-Text:\n" + text);
         ReceiptParser parser = new ReceiptParser();
         ReceiptData data = parser.parse(text);
 
