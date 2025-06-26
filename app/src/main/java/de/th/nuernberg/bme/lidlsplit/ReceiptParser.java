@@ -463,16 +463,16 @@ public class ReceiptParser {
                 }
             }
 
-            // Gesamtpreis erkennen und ggf. Artikelliste beenden
+            // Gesamtpreis erkennen und Artikelliste beenden, sobald
+            // die Zeile "Zu zahlen" gefunden wurde. Der Betrag steht
+            // in einer der darauffolgenden Zeilen.
             if (lower.contains("zu zahlen")) {
-                Matcher pm = priceOnly.matcher(line);
-                if (pm.find()) {
-                    gesamtpreis = parseDouble(pm.group());
-                } else if (i + 1 < lines.length) {
-                    String next = lines[i + 1].trim();
-                    pm = priceOnly.matcher(next);
+                for (int j = i + 1; j < lines.length; j++) {
+                    String next = lines[j].trim();
+                    Matcher pm = priceOnly.matcher(next);
                     if (pm.matches()) {
                         gesamtpreis = parseDouble(pm.group());
+                        break;
                     }
                 }
                 break;
