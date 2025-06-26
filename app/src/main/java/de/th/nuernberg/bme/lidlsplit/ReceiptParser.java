@@ -22,9 +22,9 @@ public class ReceiptParser {
      * </pre>
      */
     private static final Pattern ITEM_PATTERN =
-            Pattern.compile("^(.+?)\\s+(-?[0-9]+,[0-9]{2})(?:\\s*(?:€|EUR))?\\s*[A-Z]?$");
+            Pattern.compile("^(.+?)\\s+(\\d+[.,]?\\d*)\\s*(?:€|EUR)?\\s*[A-Z]?$");
     private static final Pattern TOTAL_PATTERN =
-            Pattern.compile("(?i)zu\\s+zahlen.*?(-?[0-9]+,[0-9]{2})");
+            Pattern.compile("(?i)zu\\s+zahlen.*?(\\d+[.,]?\\d*)");
     private static final Pattern DATE_TIME_PATTERN =
             Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})\\s+(\\d{2}:\\d{2})");
     private static final Pattern CITY_PATTERN =

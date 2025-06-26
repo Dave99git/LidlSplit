@@ -108,6 +108,11 @@ public class NewPurchaseActivity extends AppCompatActivity {
 
         items.clear();
         items.addAll(data.getItems());
+        if (items.isEmpty()) {
+            itemRecycler.setVisibility(View.GONE);
+        } else {
+            itemRecycler.setVisibility(View.VISIBLE);
+        }
 
         StringBuilder sb = new StringBuilder();
         if (data.getDateTime() != null) {
