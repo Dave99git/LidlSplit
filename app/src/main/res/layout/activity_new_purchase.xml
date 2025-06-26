@@ -40,6 +40,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerLayout" />
 
+    <TextView
+        android:id="@+id/tvPaidLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/checkbox_paid"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout" />
+
     <Button
         android:id="@+id/btnAddPersonSelect"
         android:layout_width="wrap_content"
@@ -61,15 +72,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnAddPersonSelect" />
 
-    <CheckBox
-        android:id="@+id/cbPaid"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/checkbox_paid"
-        android:layout_margin="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recyclerPersonsSelect" />
-
     <Button
         android:id="@+id/btnUploadReceipt"
         android:layout_width="wrap_content"
@@ -80,7 +82,7 @@
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cbPaid" />
+        app:layout_constraintTop_toBottomOf="@id/recyclerPersonsSelect" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerItems"
