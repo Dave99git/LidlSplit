@@ -478,23 +478,14 @@ public class ReceiptParser {
                 break;
             }
 
-            if (lower.contains("summe")) {
-                Matcher pm = priceOnly.matcher(line);
-                if (pm.find()) {
-                    gesamtpreis = parseDouble(pm.group());
-                } else if (i + 1 < lines.length) {
-                    String next = lines[i + 1].trim();
-                    pm = priceOnly.matcher(next);
-                    if (pm.matches()) {
-                        gesamtpreis = parseDouble(pm.group());
-                        i++;
-                    }
-                }
+            // Zeilen wie "Summe" oder "Gesamter Preisvorteil" ignorieren
+            if (lower.contains("summe") || (lower.contains("preisvorteil") && lower.contains("gesamt"))) {
+                lastName = null;
                 continue;
             }
 
             // Preisvorteil verarbeiten
-            if (lower.contains("preisvorteil") && !artikelListe.isEmpty()) {
+            if (lower.contains("preisvorteil") && !lower.contains("gesamt") && !artikelListe.isEmpty()) {
                 Matcher pm = priceOnly.matcher(line);
                 if (pm.find()) {
                     double diff = parseDouble(pm.group());
