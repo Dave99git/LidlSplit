@@ -423,6 +423,44 @@ public class ReceiptParser {
                 continue;
             }
 
+            // --- BEGIN: Preisvorteil-Verarbeitung ---
+            if (rowText.toLowerCase().contains("preisvorteil") && lastItem != null) {
+                double diff = Double.NaN;
+
+                // Versuche Preisvorteil in derselben Zeile
+                Matcher advMatcher = ADVANTAGE_PATTERN.matcher(rowText);
+                if (advMatcher.find()) {
+                    diff = parseGermanPrice(advMatcher.group(1));
+                } else {
+                    // Alternativ: nächster Row-Preis
+                    int nextIndex = rows.indexOf(row) + 1;
+                    if (nextIndex < rows.size()) {
+                        List<Text.Element> nextRow = rows.get(nextIndex);
+                        for (Text.Element el : nextRow) {
+                            String t = el.getText();
+                            if (PRICE_ELEMENT_PATTERN.matcher(t).matches()) {
+                                diff = parseGermanPrice(t);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!Double.isNaN(diff)) {
+                    double newPrice = lastItem.getPrice() + diff;
+                    if (newPrice < 0) {
+                        items.remove(items.size() - 1);
+                        lastItem = null;
+                    } else {
+                        lastItem = new PurchaseItem(lastItem.getName(), newPrice);
+                        items.set(items.size() - 1, lastItem);
+                    }
+                }
+
+                continue; // Preisvorteilzeile nicht als Artikel speichern
+            }
+            // --- END ---
+
             if (priceText != null && rowText.length() > 0) {
                 // Entferne " A" am Ende des Artikelnamens
                 if (rowText.endsWith(" A")) {
