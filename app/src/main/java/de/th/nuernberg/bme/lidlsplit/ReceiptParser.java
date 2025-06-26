@@ -168,25 +168,37 @@ public class ReceiptParser {
                 continue;
             }
 
-            // Fallback: Preisvorteil auf zwei Zeilen erkennen
-            if (line.toLowerCase().contains("preisvorteil") && lastItem != null && i + 1 < lines.length) {
-                String nextLine = lines[i + 1].trim();
-                Matcher priceMatcher = PRICE_ONLY_PATTERN.matcher(nextLine);
-                if (priceMatcher.matches()) {
-                    double diff = parseDouble(priceMatcher.group(1));
+            if (line.toLowerCase().contains("preisvorteil") && lastItem != null) {
+                double diff = Double.NaN;
+
+                // Versuche den Preis in derselben Zeile zu extrahieren
+                Matcher sameLine = PRICE_ONLY_PATTERN.matcher(line);
+                if (sameLine.find()) {
+                    diff = parseDouble(sameLine.group(1));
+                } else if (i + 1 < lines.length) {
+                    // Versuche den Preis aus der nächsten Zeile zu lesen
+                    String nextLine = lines[i + 1].trim();
+                    Matcher nextPrice = PRICE_ONLY_PATTERN.matcher(nextLine);
+                    if (nextPrice.matches()) {
+                        diff = parseDouble(nextPrice.group(1));
+                        i++; // nächste Zeile überspringen
+                    }
+                }
+
+                if (!Double.isNaN(diff)) {
                     double newPrice = lastItem.getPrice() + diff;
                     if (newPrice < 0) {
                         items.remove(items.size() - 1);
-                        Log.d("ReceiptParser", "Artikel durch negativen Preisvorteil entfernt: " + lastItem.getName());
+                        Log.d("ReceiptParser", "Negativer Preisvorteil, Artikel entfernt: " + lastItem.getName());
                         lastItem = null;
                     } else {
                         lastItem = new PurchaseItem(lastItem.getName(), newPrice);
                         items.set(items.size() - 1, lastItem);
-                        Log.d("ReceiptParser", "Preisvorteil über zwei Zeilen erkannt: " + lastItem.getName() + " + " + diff);
+                        Log.d("ReceiptParser", "Preisvorteil: " + diff + " → Neuer Preis: " + newPrice);
                     }
-                    i++; // nächste Zeile überspringen
-                    continue;
                 }
+
+                continue;
             }
 
             Matcher discMatcher = DISCOUNT_PATTERN.matcher(line);
