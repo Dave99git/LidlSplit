@@ -6,12 +6,15 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.th.nuernberg.bme.lidlsplit.Article;
 import android.util.Log;
+import android.graphics.Rect;
+import com.google.mlkit.vision.text.Text;
 
 public class ReceiptParser {
 
@@ -56,6 +59,8 @@ public class ReceiptParser {
             Pattern.compile("^\\-\\d+[.,]\\d{2}$");
     private static final Pattern PRICE_ONLY_PATTERN =
             Pattern.compile("(-?\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
+    private static final Pattern PRICE_ELEMENT_PATTERN =
+            Pattern.compile("-?\\d+[.,]\\d{2}");
     // Lines containing the following keywords should never be treated as item
     // names. This helps to avoid false positives such as "MWST" or "Karte" when
     // the OCR output is noisy.
@@ -259,6 +264,70 @@ public class ReceiptParser {
         }
 
         return new ParsedReceipt(articleList, date, data.getTotal(), address);
+    }
+
+    /**
+     * Parses the structured {@link Text} result from ML Kit and extracts
+     * purchase items using the bounding boxes of the detected lines. Only the
+     * item name and price are returned.
+     */
+    public List<PurchaseItem> parseOcr(Text ocrResult) {
+        List<Text.Line> lines = new ArrayList<>();
+        for (Text.TextBlock block : ocrResult.getTextBlocks()) {
+            lines.addAll(block.getLines());
+        }
+
+        lines.sort(Comparator.comparingInt(l -> {
+            Rect b = l.getBoundingBox();
+            return b != null ? b.top : 0;
+        }));
+
+        List<PurchaseItem> items = new ArrayList<>();
+        Text.Line pending = null;
+
+        for (Text.Line line : lines) {
+            Rect box = line.getBoundingBox();
+            Log.d("OCR", "Line: " + line.getText() + " | Box: " + box);
+
+            StringBuilder nameBuilder = new StringBuilder();
+            String priceText = null;
+            for (Text.Element e : line.getElements()) {
+                String t = e.getText();
+                if (PRICE_ELEMENT_PATTERN.matcher(t).matches()) {
+                    priceText = t;
+                } else {
+                    if (nameBuilder.length() > 0) nameBuilder.append(' ');
+                    nameBuilder.append(t);
+                }
+            }
+
+            if (priceText != null && nameBuilder.length() > 0) {
+                double price = parseGermanPrice(priceText);
+                items.add(new PurchaseItem(nameBuilder.toString().trim(), price));
+                pending = null;
+                continue;
+            }
+
+            if (priceText == null && nameBuilder.length() > 0) {
+                pending = line;
+                continue;
+            }
+
+            if (priceText != null && nameBuilder.length() == 0 && pending != null) {
+                Rect prev = pending.getBoundingBox();
+                if (prev != null && box != null) {
+                    int dist = Math.abs(box.top - prev.top);
+                    int maxH = Math.max(prev.height(), box.height());
+                    if (dist < maxH) {
+                        double price = parseGermanPrice(priceText);
+                        items.add(new PurchaseItem(pending.getText().trim(), price));
+                        pending = null;
+                    }
+                }
+            }
+        }
+
+        return items;
     }
 
     /**
