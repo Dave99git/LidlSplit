@@ -168,24 +168,22 @@ public class ReceiptParser {
                 continue;
             }
 
-            if (line.toLowerCase().contains("preisvorteil") && lastItem != null) {
+            if (line.toLowerCase().contains("preisvorteil")) {
                 double diff = Double.NaN;
 
-                // Versuche den Preis in derselben Zeile zu extrahieren
-                Matcher sameLine = PRICE_ONLY_PATTERN.matcher(line);
-                if (sameLine.find()) {
-                    diff = parseDouble(sameLine.group(1));
+                Matcher advMatcher2 = ADVANTAGE_PATTERN.matcher(line);
+                if (advMatcher2.find()) {
+                    diff = parseDouble(advMatcher2.group(1));
                 } else if (i + 1 < lines.length) {
-                    // Versuche den Preis aus der nächsten Zeile zu lesen
                     String nextLine = lines[i + 1].trim();
-                    Matcher nextPrice = PRICE_ONLY_PATTERN.matcher(nextLine);
-                    if (nextPrice.matches()) {
-                        diff = parseDouble(nextPrice.group(1));
+                    Matcher pm = PRICE_ONLY_PATTERN.matcher(nextLine);
+                    if (pm.matches()) {
+                        diff = parseDouble(pm.group(1));
                         i++; // nächste Zeile überspringen
                     }
                 }
 
-                if (!Double.isNaN(diff)) {
+                if (!Double.isNaN(diff) && lastItem != null) {
                     double newPrice = lastItem.getPrice() + diff;
                     if (newPrice < 0) {
                         items.remove(items.size() - 1);
@@ -198,6 +196,7 @@ public class ReceiptParser {
                     }
                 }
 
+                pendingName = null;
                 continue;
             }
 
