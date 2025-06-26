@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import de.th.nuernberg.bme.lidlsplit.Article;
 import android.util.Log;
 
 public class ReceiptParser {
@@ -166,91 +168,72 @@ public class ReceiptParser {
      * the {@link #parse(String)} method above so that the logic can be followed
      * more easily.
      */
-    public static ParsedReceipt parseReceipt(String text) {
-        List<Artikel> artikelListe = new ArrayList<>();
-        String adresse = null;
-        String datum = null;
-        double gesamtpreis = 0.0;
+    public static ParsedReceipt parseReceipt(String ocrText) {
+        List<Article> articleList = new ArrayList<>();
+        String[] lines = ocrText.split("\n");
 
-        String[] lines = text.split("\n");
+        String address = "";
+        String date = "";
+        double totalPrice = 0.0;
 
-        if (lines.length > 0) {
-            adresse = lines[0].trim();
-        }
-        if (lines.length > 1) {
-            String city = lines[1].trim();
-            if (adresse == null || adresse.isEmpty()) {
-                adresse = city;
-            } else {
-                adresse = adresse + ", " + city;
-            }
-        }
+        Pattern pricePattern = Pattern.compile("^-?[0-9]{1,3},[0-9]{2}$");
+        Pattern datePattern = Pattern.compile("\\b(\\d{2}\\.\\d{2}\\.\\d{2,4})\\b");
 
-        Pattern itemLine = Pattern.compile("^(.+?)\\s+(\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
-        Pattern priceOnly = Pattern.compile("(-?\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
-        Pattern totalPattern = Pattern.compile("(?i)(?:gesamtsumme|summe|gesamt|zu\\s+zahlen).*?(\\d+[.,]\\d{2})");
-        Pattern advantagePattern = Pattern.compile("(?i)preisvorteil\\s+(-?\\d+[.,]\\d{2})");
-        Pattern datePattern = Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})");
+        for (int i = 0; i < lines.length - 1; i++) {
+            String currentLine = lines[i].trim();
+            String nextLine = lines[i + 1].trim();
 
-        Artikel lastItem = null;
-        String pendingName = null;
+            Log.d("ReceiptParser", "Zeile[" + i + "]: " + currentLine);
 
-        for (int i = 2; i < lines.length; i++) {
-            String line = lines[i].trim();
-            if (line.isEmpty()) {
-                continue;
+            if (i < 5 && currentLine.matches(".*\\d{5}\\s+.*")) {
+                address += (address.isEmpty() ? "" : ", ") + currentLine;
             }
 
-            if (gesamtpreis == 0.0) {
-                Matcher tot = totalPattern.matcher(line);
-                if (tot.find()) {
-                    gesamtpreis = parseDouble(tot.group(1));
+            Matcher dateMatcher = datePattern.matcher(currentLine);
+            if (dateMatcher.find()) {
+                date = dateMatcher.group(1);
+            }
+
+            if (!currentLine.matches(".*\\d.*") && pricePattern.matcher(nextLine).matches()) {
+                String name = currentLine;
+                double price = parseGermanPrice(nextLine);
+
+                if (name.toLowerCase().contains("preisvorteil") && !articleList.isEmpty()) {
+                    Article last = articleList.get(articleList.size() - 1);
+                    last.setPrice(last.getPrice() - price);
+                    i++;
                     continue;
                 }
-            }
 
-            Matcher adv = advantagePattern.matcher(line);
-            if (adv.matches() && lastItem != null) {
-                double diff = parseDouble(adv.group(1));
-                lastItem.preis += diff;
-                if (lastItem.preis < 0) {
-                    artikelListe.remove(artikelListe.size() - 1);
-                    lastItem = null;
-                }
+                articleList.add(new Article(name, price));
+                i++;
                 continue;
             }
 
-            Matcher priceM = priceOnly.matcher(line);
-            if (priceM.matches() && pendingName != null) {
-                double price = parseDouble(priceM.group(1));
-                lastItem = new Artikel(pendingName, price);
-                artikelListe.add(lastItem);
-                pendingName = null;
-                continue;
+            Matcher inlineItem = Pattern.compile("^(.+)\\s+(-?[0-9]{1,3},[0-9]{2})\\s*[A-Z]?$").matcher(currentLine);
+            if (inlineItem.matches()) {
+                String name = inlineItem.group(1).trim();
+                double price = parseGermanPrice(inlineItem.group(2));
+                articleList.add(new Article(name, price));
             }
 
-            Matcher itemM = itemLine.matcher(line);
-            if (itemM.matches()) {
-                String name = itemM.group(1).trim();
-                double price = parseDouble(itemM.group(2));
-                lastItem = new Artikel(name, price);
-                artikelListe.add(lastItem);
-                pendingName = null;
-                continue;
-            }
-
-            if (datum == null) {
-                Matcher dateM = datePattern.matcher(line);
-                if (dateM.find()) {
-                    datum = dateM.group(1);
-                    continue;
+            if (currentLine.toLowerCase().contains("gesamt") || currentLine.toLowerCase().contains("summe")) {
+                Matcher m = Pattern.compile(".*?(-?[0-9]{1,3},[0-9]{2})").matcher(currentLine);
+                if (m.find()) {
+                    totalPrice = parseGermanPrice(m.group(1));
                 }
             }
-
-            pendingName = line;
         }
 
-        return new ParsedReceipt(artikelListe, datum, gesamtpreis, adresse);
+        Log.d("ReceiptParser", "Adresse: " + address);
+        Log.d("ReceiptParser", "Datum: " + date);
+        Log.d("ReceiptParser", "Gesamtpreis: " + totalPrice);
+
+        for (Article a : articleList) {
+            Log.d("ReceiptParser", "Artikel: " + a.getName() + " / " + a.getPrice());
+        }
+
+        return new ParsedReceipt(articleList, date, totalPrice, address);
     }
 
     /**
@@ -289,5 +272,9 @@ public class ReceiptParser {
 
     private static double parseDouble(String value) {
         return Double.parseDouble(value.replace(",", "."));
+    }
+
+    private static double parseGermanPrice(String priceText) {
+        return Double.parseDouble(priceText.replace(".", "").replace(",", "."));
     }
 }

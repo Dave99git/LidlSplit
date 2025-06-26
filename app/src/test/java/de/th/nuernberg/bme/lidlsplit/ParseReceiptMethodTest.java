@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import java.util.List;
 
+import de.th.nuernberg.bme.lidlsplit.Article;
+
 import static org.junit.Assert.*;
 
 public class ParseReceiptMethodTest {
@@ -25,11 +27,11 @@ public class ParseReceiptMethodTest {
         assertEquals("18.06.2025", result.getDate());
         assertEquals(19.86, result.getTotal(), 0.001);
 
-        List<Artikel> items = result.getItems();
+        List<Article> items = result.getItems();
         assertEquals(2, items.size());
-        assertEquals("Cherrystrauchtomaten", items.get(0).name);
-        assertEquals(1.59, items.get(0).preis, 0.001);
-        assertEquals("Laugenbrezel 10er", items.get(1).name);
-        assertEquals(1.99, items.get(1).preis, 0.001);
+        assertEquals("Cherrystrauchtomaten", items.get(0).getName());
+        assertEquals(1.59, items.get(0).getPrice(), 0.001);
+        assertEquals("Laugenbrezel 10er", items.get(1).getName());
+        assertEquals(1.99, items.get(1).getPrice(), 0.001);
     }
 }
