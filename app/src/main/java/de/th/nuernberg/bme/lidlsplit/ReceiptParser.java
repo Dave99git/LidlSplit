@@ -9,8 +9,20 @@ import java.util.regex.Pattern;
 
 public class ReceiptParser {
 
+    /**
+     * Matches a single receipt line consisting of the item name followed by a price. The
+     * recognised receipts occasionally contain additional trailing characters such as an euro
+     * sign or the letter "A" used for deposits. These extras should be ignored when parsing.
+     *
+     * Example lines that should match:
+     * <pre>
+     * Laugenbrezel 10er      1,99
+     * LAUGENBREZEL 10ER 1,99 €
+     * MILCH 0,89A
+     * </pre>
+     */
     private static final Pattern ITEM_PATTERN =
-            Pattern.compile("^(.+?)\\s+(-?[0-9]+,[0-9]{2})\\s*A?$");
+            Pattern.compile("^(.+?)\\s+(-?[0-9]+,[0-9]{2})(?:\\s*(?:€|EUR))?\\s*[A-Z]?$");
     private static final Pattern TOTAL_PATTERN =
             Pattern.compile("(?i)zu\\s+zahlen.*?(-?[0-9]+,[0-9]{2})");
     private static final Pattern DATE_TIME_PATTERN =
@@ -30,19 +42,20 @@ public class ReceiptParser {
             String line = lines[i].trim();
             if (line.isEmpty()) continue;
 
+            if (total == 0.0) {
+                Matcher totalMatcher = TOTAL_PATTERN.matcher(line);
+                if (totalMatcher.find()) {
+                    total = parseDouble(totalMatcher.group(1));
+                    continue;
+                }
+            }
+
             Matcher itemMatcher = ITEM_PATTERN.matcher(line);
             if (itemMatcher.matches()) {
                 String name = itemMatcher.group(1).trim();
                 double price = parseDouble(itemMatcher.group(2));
                 items.add(new PurchaseItem(name, price));
                 continue;
-            }
-
-            if (total == 0.0) {
-                Matcher totalMatcher = TOTAL_PATTERN.matcher(line);
-                if (totalMatcher.find()) {
-                    total = parseDouble(totalMatcher.group(1));
-                }
             }
 
             if (dateTime == null) {

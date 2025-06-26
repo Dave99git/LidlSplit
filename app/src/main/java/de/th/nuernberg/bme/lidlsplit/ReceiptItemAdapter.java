@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,7 +68,7 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
     public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
         PurchaseItem item = items.get(position);
         holder.name.setText(item.getName());
-        holder.price.setText(String.format("%.2f€", item.getPrice()));
+        holder.price.setText(String.format(Locale.GERMAN, "%.2f €", item.getPrice()));
         holder.container.removeAllViews();
 
         final Context ctx = holder.container.getContext();
