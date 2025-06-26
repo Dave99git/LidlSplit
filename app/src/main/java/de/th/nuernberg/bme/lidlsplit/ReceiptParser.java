@@ -408,8 +408,17 @@ public class ReceiptParser {
             Matcher discMatcher = DISCOUNT_PATTERN.matcher(rowText);
             if (discMatcher.matches() && lastItem != null) {
                 double diff = parseGermanPrice(discMatcher.group());
-                lastItem = new PurchaseItem(lastItem.getName(), lastItem.getPrice() + diff);
-                items.set(items.size() - 1, lastItem);
+                double newPrice = lastItem.getPrice() + diff;
+
+                if (newPrice < 0) {
+                    items.remove(items.size() - 1);
+                    Log.d("ReceiptParser", "Artikel entfernt wegen negativem Gesamtpreis nach Preisvorteil: " + lastItem.getName());
+                    lastItem = null;
+                } else {
+                    lastItem = new PurchaseItem(lastItem.getName(), newPrice);
+                    items.set(items.size() - 1, lastItem);
+                    Log.d("ReceiptParser", "Negativer Preis erkannt als Preisvorteil: " + diff + " → Neuer Preis: " + newPrice);
+                }
                 continue;
             }
 
