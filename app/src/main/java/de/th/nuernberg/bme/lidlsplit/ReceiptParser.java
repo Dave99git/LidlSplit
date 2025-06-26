@@ -424,7 +424,6 @@ public class ReceiptParser {
         gesamtpreis = 0.0;
 
         List<Artikel> artikelListe = new ArrayList<>();
-        boolean afterTotalLine = false;
 
         Pattern textOnly = Pattern.compile("[A-Za-zÄÖÜäöüß\\s\\-.]+");
         Pattern priceOnly = Pattern.compile("[-+]?\\d{1,3},\\d{2}");
@@ -436,9 +435,7 @@ public class ReceiptParser {
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();
-            if (line.isEmpty()) {
-                continue;
-            }
+            if (line.isEmpty()) continue;
             String lower = line.toLowerCase();
 
             // Adresse erkennen
@@ -463,9 +460,7 @@ public class ReceiptParser {
                 }
             }
 
-            // Gesamtpreis erkennen und Artikelliste beenden, sobald
-            // die Zeile "Zu zahlen" gefunden wurde. Der Betrag steht
-            // in einer der darauffolgenden Zeilen.
+            // Bei "Zu zahlen" den Gesamtpreis ermitteln und abbrechen
             if (lower.contains("zu zahlen")) {
                 for (int j = i + 1; j < lines.length; j++) {
                     String next = lines[j].trim();
@@ -475,7 +470,7 @@ public class ReceiptParser {
                         break;
                     }
                 }
-                break; // Ab hier keine Artikel mehr verarbeiten!
+                break; // Keine weiteren Artikel danach erfassen!
             }
 
             // Zeilen wie "Summe" oder "Gesamter Preisvorteil" ignorieren
@@ -484,7 +479,7 @@ public class ReceiptParser {
                 continue;
             }
 
-            // Preisvorteil verarbeiten
+            // Preisvorteil (nicht gesamt) verrechnen
             if (lower.contains("preisvorteil") && !lower.contains("gesamt") && !artikelListe.isEmpty()) {
                 Matcher pm = priceOnly.matcher(line);
                 if (pm.find()) {
@@ -501,25 +496,23 @@ public class ReceiptParser {
                 continue;
             }
 
-            // Artikel mit Preis in einer Zeile
-            if (!afterTotalLine) {
-                Matcher itemMatcher = itemLine.matcher(line);
-                if (itemMatcher.matches()) {
-                    artikelListe.add(new Artikel(itemMatcher.group(1).trim(), parseDouble(itemMatcher.group(2))));
-                    lastName = null;
-                    continue;
-                }
+            // Artikelzeile mit Name + Preis
+            Matcher itemMatcher = itemLine.matcher(line);
+            if (itemMatcher.matches()) {
+                artikelListe.add(new Artikel(itemMatcher.group(1).trim(), parseDouble(itemMatcher.group(2))));
+                lastName = null;
+                continue;
             }
 
             // Nur Preiszeile
             Matcher priceMatcher = priceOnly.matcher(line);
-            if (!afterTotalLine && priceMatcher.matches() && lastName != null) {
+            if (priceMatcher.matches() && lastName != null) {
                 artikelListe.add(new Artikel(lastName, parseDouble(priceMatcher.group())));
                 lastName = null;
                 continue;
             }
 
-            // Nur Textzeile -> möglicher Artikelname
+            // Nur Textzeile → möglicher Artikelname
             if (textOnly.matcher(line).matches()) {
                 lastName = line.trim();
             }
