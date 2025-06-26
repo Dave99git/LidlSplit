@@ -11,13 +11,13 @@ public class SimpleReceiptParserTest {
     public void parseBonExtractsData() {
         String text = "Allersberger Straße 130\n" +
                 "90461 Nürnberg\n" +
+                "18.06.2025\n" +
                 "Cherrystrauchtomaten\n" +
                 "1,79 A\n" +
                 "Preisvorteil -0,20\n" +
                 "Laugenbrezel 10er\n" +
                 "1,99 A\n" +
-                "Gesamt: 19,86 \u20ac\n" +
-                "18.06.2025";
+                "Zu zahlen 19,86";
 
         List<Artikel> items = ReceiptParser.parseBon(text);
 
