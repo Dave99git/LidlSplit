@@ -168,6 +168,27 @@ public class ReceiptParser {
                 continue;
             }
 
+            // Fallback: Preisvorteil auf zwei Zeilen erkennen
+            if (line.toLowerCase().contains("preisvorteil") && lastItem != null && i + 1 < lines.length) {
+                String nextLine = lines[i + 1].trim();
+                Matcher priceMatcher = PRICE_ONLY_PATTERN.matcher(nextLine);
+                if (priceMatcher.matches()) {
+                    double diff = parseDouble(priceMatcher.group(1));
+                    double newPrice = lastItem.getPrice() + diff;
+                    if (newPrice < 0) {
+                        items.remove(items.size() - 1);
+                        Log.d("ReceiptParser", "Artikel durch negativen Preisvorteil entfernt: " + lastItem.getName());
+                        lastItem = null;
+                    } else {
+                        lastItem = new PurchaseItem(lastItem.getName(), newPrice);
+                        items.set(items.size() - 1, lastItem);
+                        Log.d("ReceiptParser", "Preisvorteil über zwei Zeilen erkannt: " + lastItem.getName() + " + " + diff);
+                    }
+                    i++; // nächste Zeile überspringen
+                    continue;
+                }
+            }
+
             Matcher discMatcher = DISCOUNT_PATTERN.matcher(line);
             if (discMatcher.matches() && lastItem != null) {
                 double disc = parseDouble(discMatcher.group());
