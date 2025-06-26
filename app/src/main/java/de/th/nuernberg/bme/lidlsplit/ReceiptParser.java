@@ -534,6 +534,55 @@ public class ReceiptParser {
                 continue;
             }
 
+            // Sonderfall: Artikelname, danach Preis + Preisvorteil
+            if (pending != null) {
+                int currentIndex = rows.indexOf(row);
+                if (currentIndex + 2 < rows.size()) {
+                    List<Text.Element> priceRow = rows.get(currentIndex + 1);
+                    List<Text.Element> discountRow = rows.get(currentIndex + 2);
+
+                    String priceTextLine = priceRow.stream()
+                            .map(Text.Element::getText)
+                            .reduce("", (a, b) -> a + " " + b).trim();
+                    String discountTextLine = discountRow.stream()
+                            .map(Text.Element::getText)
+                            .reduce("", (a, b) -> a + " " + b).trim();
+
+                    Matcher priceMatcher = PRICE_ELEMENT_PATTERN.matcher(priceTextLine);
+                    Matcher discountMatcher = DISCOUNT_PATTERN.matcher(discountTextLine);
+
+                    if (priceMatcher.find() && discountMatcher.find()) {
+                        double basePrice = parseGermanPrice(priceMatcher.group());
+                        double rabatt = parseGermanPrice(discountMatcher.group());
+
+                        double finalPrice = basePrice + rabatt;
+
+                        if (finalPrice > 0) {
+                            StringBuilder nameB = new StringBuilder();
+                            for (Text.Element el : pending) {
+                                if (nameB.length() > 0) nameB.append(" ");
+                                nameB.append(el.getText());
+                            }
+                            String name = nameB.toString().trim();
+                            if (name.endsWith(" A")) {
+                                name = name.substring(0, name.length() - 2).trim();
+                            }
+
+                            PurchaseItem correctedItem = new PurchaseItem(name, finalPrice);
+                            items.add(correctedItem);
+                            lastItem = correctedItem;
+                            pending = null;
+
+                            Log.d("ReceiptParser", "Artikel mit Rabatt kombiniert: " +
+                                    name + " → " + finalPrice);
+                            // Zwei Zeilen überspringen
+                            row = discountRow;
+                            continue;
+                        }
+                    }
+                }
+            }
+
             if (priceText != null && rowText.isEmpty() && pending != null) {
                 Rect prev = pending.get(0).getBoundingBox();
                 Rect box = row.get(0).getBoundingBox();
