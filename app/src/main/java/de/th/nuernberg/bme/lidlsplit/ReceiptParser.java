@@ -157,16 +157,6 @@ public class ReceiptParser {
             }
 
             if (!afterTotalLine) {
-            Matcher advMatcher = ADVANTAGE_PATTERN.matcher(line);
-            if (advMatcher.find() && lastItem != null) {
-                double adv = parseDouble(advMatcher.group(1));
-                String oldName = lastItem.getName();
-                double newPrice = lastItem.getPrice() + adv;
-                lastItem = new PurchaseItem(oldName, newPrice);
-                items.set(items.size() - 1, lastItem);
-                Log.d("ReceiptParser", "Preisvorteil erkannt: " + lastItem.getName() + " + " + adv);
-                continue;
-            }
 
             if (line.toLowerCase().contains("preisvorteil")) {
                 double diff = Double.NaN;
