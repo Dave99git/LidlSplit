@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -67,6 +68,7 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
     @Override
     public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
         PurchaseItem item = items.get(position);
+        Log.d("ArtikelUI", "Bind " + position + ": " + items.toString());
         holder.name.setText(item.getName());
         holder.price.setText(String.format(Locale.GERMAN, "%.2f €", item.getPrice()));
         holder.container.removeAllViews();
