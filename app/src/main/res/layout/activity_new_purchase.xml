@@ -95,15 +95,6 @@
                 android:layout_marginTop="8dp"
                 android:layout_gravity="center_horizontal" />
 
-            <Button
-                android:id="@+id/btnCreateInvoice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/create_invoice"
-                android:backgroundTint="@color/lidlBlue"
-                android:textColor="@color/white"
-                android:layout_marginTop="8dp"
-                android:layout_gravity="center_horizontal" />
 
             <TextView
                 android:id="@+id/tvAddress"
@@ -122,6 +113,15 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/text_artikel_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Artikelliste"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerItems"
@@ -145,6 +145,16 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/black"
                 android:layout_margin="8dp" />
+
+            <Button
+                android:id="@+id/btnCreateInvoice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/create_invoice"
+                android:backgroundTint="@color/lidlBlue"
+                android:textColor="@color/white"
+                android:layout_marginTop="8dp"
+                android:layout_gravity="center_horizontal" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
