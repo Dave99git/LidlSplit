@@ -11,9 +11,11 @@ public class ReceiptParserTest {
     public void parseSampleReceipt() {
         String text = "Allersberger Straße 130\n" +
                 "90461 Nürnberg\n" +
-                "Cherrystrauchtomaten 1,79 A\n" +
+                "Cherrystrauchtomaten\n" +
+                "1,79 A\n" +
                 "Preisvorteil -0,20\n" +
-                "Laugenbrezel 10er          1,99 A\n" +
+                "Laugenbrezel 10er\n" +
+                "1,99 A\n" +
                 "---\n" +
                 "zu zahlen             19,86\n" +
                 "18.06.2025";
