@@ -60,7 +60,7 @@ public class ReceiptParser {
     private static final Pattern DISCOUNT_PATTERN =
             Pattern.compile("^\\-\\d+[.,]\\d{2}$");
     private static final Pattern PRICE_ONLY_PATTERN =
-            Pattern.compile("^\\s*(-?\\d{1,3}(?:[.,]\\d{2}))\\s*(?:€|EUR)?\\s*[A-Z]?$");
+            Pattern.compile("(?<!\\d)(-?\\d{1,3}(?:[.,]\\d{2}))(?!\\d)");
     private static final Pattern PRICE_ELEMENT_PATTERN =
             Pattern.compile("-?\\d+[.,]\\d{2}A?");
     // Lines containing the following keywords should never be treated as item
@@ -168,7 +168,7 @@ public class ReceiptParser {
                 for (int j = i + 1; j < Math.min(i + 6, lines.length); j++) {
                     String candidate = lines[j].trim();
                     Matcher m = PRICE_ONLY_PATTERN.matcher(candidate);
-                    if (m.matches()) {
+                    if (m.find()) {
                         total = parseDouble(m.group(1));
                         Log.d("ReceiptParser", "Gesamtbetrag erkannt: " + total + " (nach 'zu zahlen')");
                         break;
