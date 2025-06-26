@@ -159,41 +159,98 @@ public class ReceiptParser {
     }
 
     /**
-     * Convenience method returning a {@link ParsedReceipt} object for the given
-     * raw receipt text. It internally delegates to {@link #parse(String)} and
-     * converts the {@link PurchaseItem}s into the simpler {@link Artikel}
-     * representation used by some parts of the application.
+     * Parses the provided receipt text and extracts all relevant information
+     * using regular expressions. The returned {@link ParsedReceipt} contains a
+     * list of articles, the address, the purchase date and the total price. The
+     * implementation mirrors the requirements of the kata and does not rely on
+     * the {@link #parse(String)} method above so that the logic can be followed
+     * more easily.
      */
     public static ParsedReceipt parseReceipt(String text) {
-        ReceiptParser parser = new ReceiptParser();
-        ReceiptData data = parser.parse(text);
-
-        // convert items
         List<Artikel> artikelListe = new ArrayList<>();
-        for (PurchaseItem pi : data.getItems()) {
-            artikelListe.add(new Artikel(pi.getName(), pi.getPrice()));
-        }
+        String adresse = null;
+        String datum = null;
+        double gesamtpreis = 0.0;
 
-        // format date if available
-        String datumStr = null;
-        if (data.getDateTime() != null) {
-            DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-            datumStr = data.getDateTime().toLocalDate().format(df);
-        }
+        String[] lines = text.split("\n");
 
-        // build address string
-        String adresseStr = null;
-        if (data.getStreet() != null || data.getCity() != null) {
-            StringBuilder sb = new StringBuilder();
-            if (data.getStreet() != null) sb.append(data.getStreet());
-            if (data.getCity() != null) {
-                if (sb.length() > 0) sb.append(", ");
-                sb.append(data.getCity());
+        if (lines.length > 0) {
+            adresse = lines[0].trim();
+        }
+        if (lines.length > 1) {
+            String city = lines[1].trim();
+            if (adresse == null || adresse.isEmpty()) {
+                adresse = city;
+            } else {
+                adresse = adresse + ", " + city;
             }
-            adresseStr = sb.toString();
         }
 
-        return new ParsedReceipt(artikelListe, datumStr, data.getTotal(), adresseStr);
+        Pattern itemLine = Pattern.compile("^(.+?)\\s+(\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
+        Pattern priceOnly = Pattern.compile("(-?\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
+        Pattern totalPattern = Pattern.compile("(?i)(?:gesamtsumme|summe|gesamt|zu\\s+zahlen).*?(\\d+[.,]\\d{2})");
+        Pattern advantagePattern = Pattern.compile("(?i)preisvorteil\\s+(-?\\d+[.,]\\d{2})");
+        Pattern datePattern = Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})");
+
+        Artikel lastItem = null;
+        String pendingName = null;
+
+        for (int i = 2; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+
+            if (gesamtpreis == 0.0) {
+                Matcher tot = totalPattern.matcher(line);
+                if (tot.find()) {
+                    gesamtpreis = parseDouble(tot.group(1));
+                    continue;
+                }
+            }
+
+            Matcher adv = advantagePattern.matcher(line);
+            if (adv.matches() && lastItem != null) {
+                double diff = parseDouble(adv.group(1));
+                lastItem.preis += diff;
+                if (lastItem.preis < 0) {
+                    artikelListe.remove(artikelListe.size() - 1);
+                    lastItem = null;
+                }
+                continue;
+            }
+
+            Matcher priceM = priceOnly.matcher(line);
+            if (priceM.matches() && pendingName != null) {
+                double price = parseDouble(priceM.group(1));
+                lastItem = new Artikel(pendingName, price);
+                artikelListe.add(lastItem);
+                pendingName = null;
+                continue;
+            }
+
+            Matcher itemM = itemLine.matcher(line);
+            if (itemM.matches()) {
+                String name = itemM.group(1).trim();
+                double price = parseDouble(itemM.group(2));
+                lastItem = new Artikel(name, price);
+                artikelListe.add(lastItem);
+                pendingName = null;
+                continue;
+            }
+
+            if (datum == null) {
+                Matcher dateM = datePattern.matcher(line);
+                if (dateM.find()) {
+                    datum = dateM.group(1);
+                    continue;
+                }
+            }
+
+            pendingName = line;
+        }
+
+        return new ParsedReceipt(artikelListe, datum, gesamtpreis, adresse);
     }
 
     /**
