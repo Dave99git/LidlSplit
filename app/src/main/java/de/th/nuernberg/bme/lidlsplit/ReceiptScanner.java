@@ -53,6 +53,9 @@ public class ReceiptScanner {
             for (Text.Line line : block.getLines()) {
                 Log.d("ReceiptScanner", "Line: " + line.getText()
                         + " | Box: " + line.getBoundingBox());
+                for (Text.Element el : line.getElements()) {
+                    Log.d("OCR-ELEMENT", el.getText() + " @ " + el.getBoundingBox());
+                }
             }
         }
 
