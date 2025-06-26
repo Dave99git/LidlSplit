@@ -428,9 +428,9 @@ public class ReceiptParser {
                 double diff = Double.NaN;
 
                 // Versuche Preisvorteil in derselben Zeile
-                Matcher advMatcher = ADVANTAGE_PATTERN.matcher(rowText);
-                if (advMatcher.find()) {
-                    diff = parseGermanPrice(advMatcher.group(1));
+                Matcher matcherAdv = ADVANTAGE_PATTERN.matcher(rowText);
+                if (matcherAdv.find()) {
+                    diff = parseGermanPrice(matcherAdv.group(1));
                 } else {
                     // Alternativ: nächster Row-Preis
                     int nextIndex = rows.indexOf(row) + 1;
