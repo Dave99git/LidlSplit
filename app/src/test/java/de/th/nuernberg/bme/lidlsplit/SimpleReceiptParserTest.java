@@ -11,9 +11,11 @@ public class SimpleReceiptParserTest {
     public void parseBonExtractsData() {
         String text = "Allersberger Straße 130\n" +
                 "90461 Nürnberg\n" +
-                "Cherrystrauchtomaten 1,79 A\n" +
+                "Cherrystrauchtomaten\n" +
+                "1,79 A\n" +
                 "Preisvorteil -0,20\n" +
-                "Laugenbrezel 10er 1,99 A\n" +
+                "Laugenbrezel 10er\n" +
+                "1,99 A\n" +
                 "Gesamt: 19,86 \u20ac\n" +
                 "18.06.2025";
 
@@ -33,9 +35,11 @@ public class SimpleReceiptParserTest {
     public void parseBonIgnoresNonArticleLines() {
         String text = "Allersberger Straße 130\n" +
                 "90461 Nürnberg\n" +
-                "Cherrystr.Tomaten           1,79 A\n" +
+                "Cherrystr.Tomaten\n" +
+                "1,79 A\n" +
                 "Preisvorteil               -0,20\n" +
-                "Laugenbrezel 10er           1,99 A\n" +
+                "Laugenbrezel 10er\n" +
+                "1,99 A\n" +
                 "Signaturzähler: 000031\n" +
                 "TA-Nr. 12345\n" +
                 "zu zahlen                 19,86\n" +
