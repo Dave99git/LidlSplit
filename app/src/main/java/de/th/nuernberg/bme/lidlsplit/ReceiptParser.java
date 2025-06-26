@@ -272,24 +272,98 @@ public class ReceiptParser {
         datum = "";
         gesamtpreis = 0.0;
 
-        ReceiptParser parser = new ReceiptParser();
-        ReceiptData data = parser.parse(text);
-
-        if (data.getStreet() != null) {
-            adresse = data.getStreet();
-        }
-        if (data.getCity() != null) {
-            adresse = adresse.isEmpty() ? data.getCity() : adresse + ", " + data.getCity();
-        }
-        if (data.getDateTime() != null) {
-            DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-            datum = data.getDateTime().toLocalDate().format(df);
-        }
-        gesamtpreis = data.getTotal();
-
         List<Artikel> artikelListe = new ArrayList<>();
-        for (PurchaseItem pi : data.getItems()) {
-            artikelListe.add(new Artikel(pi.getName(), pi.getPrice()));
+
+        Pattern textOnly = Pattern.compile("[A-Za-zÄÖÜäöüß\\s\\-.]+");
+        Pattern priceOnly = Pattern.compile("[-+]?\\d{1,3},\\d{2}");
+        Pattern datePattern = Pattern.compile("\\d{2}\\.\\d{2}\\.\\d{4}");
+        Pattern itemLine = Pattern.compile("([A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß0-9\\s\\-.]*?)\\s+([-+]?\\d{1,3},\\d{2})");
+
+        String[] lines = text.split("\n");
+        String lastName = null;
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+            String lower = line.toLowerCase();
+
+            // Adresse erkennen
+            if (adresse.isEmpty() && lower.contains("straße")) {
+                adresse = line;
+                if (i + 1 < lines.length) {
+                    String next = lines[i + 1].trim();
+                    if (next.matches("\\d{5}.*")) {
+                        adresse += ", " + next;
+                        i++;
+                    }
+                }
+                continue;
+            }
+
+            // Datum erkennen
+            if (datum.isEmpty()) {
+                Matcher dm = datePattern.matcher(line);
+                if (dm.find()) {
+                    datum = dm.group();
+                    continue;
+                }
+            }
+
+            // Gesamtpreis erkennen
+            if (lower.contains("zu zahlen") || lower.contains("summe")) {
+                Matcher pm = priceOnly.matcher(line);
+                if (pm.find()) {
+                    gesamtpreis = parseDouble(pm.group());
+                } else if (i + 1 < lines.length) {
+                    String next = lines[i + 1].trim();
+                    pm = priceOnly.matcher(next);
+                    if (pm.matches()) {
+                        gesamtpreis = parseDouble(pm.group());
+                        i++;
+                    }
+                }
+                continue;
+            }
+
+            // Preisvorteil verarbeiten
+            if (lower.contains("preisvorteil") && !artikelListe.isEmpty()) {
+                Matcher pm = priceOnly.matcher(line);
+                if (pm.find()) {
+                    double diff = parseDouble(pm.group());
+                    Artikel last = artikelListe.get(artikelListe.size() - 1);
+                    double newPrice = last.preis + diff;
+                    if (newPrice < 0) {
+                        artikelListe.remove(artikelListe.size() - 1);
+                        lastName = null;
+                    } else {
+                        last.preis = newPrice;
+                    }
+                }
+                continue;
+            }
+
+            // Artikel mit Preis in einer Zeile
+            Matcher itemMatcher = itemLine.matcher(line);
+            if (itemMatcher.matches()) {
+                artikelListe.add(new Artikel(itemMatcher.group(1).trim(), parseDouble(itemMatcher.group(2))));
+                lastName = null;
+                continue;
+            }
+
+            // Nur Preiszeile
+            Matcher priceMatcher = priceOnly.matcher(line);
+            if (priceMatcher.matches() && lastName != null) {
+                artikelListe.add(new Artikel(lastName, parseDouble(priceMatcher.group())));
+                lastName = null;
+                continue;
+            }
+
+            // Nur Textzeile -> möglicher Artikelname
+            if (textOnly.matcher(line).matches()) {
+                lastName = line.trim();
+            }
         }
 
         return artikelListe;
