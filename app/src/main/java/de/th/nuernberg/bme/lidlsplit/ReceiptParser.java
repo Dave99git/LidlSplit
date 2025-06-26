@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,19 +38,21 @@ public class ReceiptParser {
      * </pre>
      */
     private static final Pattern ITEM_PATTERN =
-            Pattern.compile("^(.+?)\\s+(\\d+[.,]?\\d*)\\s*(?:€|EUR)?\\s*[A-Z]?$");
+            Pattern.compile("^([A-Za-zÄÖÜäöüß\\s\\-\\.]+)\\s+(\\d+[.,]\\d{2})\\s*(?:EUR|A)?$", Pattern.CASE_INSENSITIVE);
     private static final Pattern TOTAL_PATTERN =
             Pattern.compile("(?i)(?:gesamtsumme|summe|gesamt|zu\\s+zahlen).*?(\\d+[.,]?\\d*)");
-    private static final Pattern DATE_TIME_PATTERN =
-            Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})\\s+(\\d{2}:\\d{2})");
-    private static final Pattern DATE_ONLY_PATTERN =
-            Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})");
+    private static final Pattern DATE_PATTERN =
+            Pattern.compile("(\\d{2}\\.\\d{2}\\.(?:\\d{2}|\\d{4}))(?:\\s+(\\d{2}:\\d{2}))?");
+    private static final Pattern ISO_DATE_PATTERN =
+            Pattern.compile("(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2})");
     private static final Pattern ADVANTAGE_PATTERN =
-            Pattern.compile("(?i)preisvorteil\\s+(-?\\d+[.,]?\\d*)");
+            Pattern.compile("(?i)preisvorteil\\s+(-?\\d+[.,]\\d{2})");
+    private static final Pattern DISCOUNT_PATTERN =
+            Pattern.compile("^\\-\\d+[.,]\\d{2}$");
     private static final Pattern PRICE_ONLY_PATTERN =
             Pattern.compile("(-?\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
     private static final Pattern IGNORE_LINE_PATTERN =
-            Pattern.compile("(?i)(TA-?Nr|TSE|Bonkopie|Seriennummer)");
+            Pattern.compile("(?i)(TA-?Nr|TSE|Bonkopie|Seriennummer|Transaktionsnummer|UST-ID|Kartennr|Seriennr|Signatur|Beleg|www\\.lidl\\.de)");
 
     public ReceiptData parse(String text) {
         Log.d("ReceiptParser", "OCR-Rohtext:\n" + text);
@@ -61,8 +64,22 @@ public class ReceiptParser {
         LocalDateTime dateTime = null;
 
         String[] lines = text.split("\n");
-        if (lines.length > 0) street = lines[0].trim();
-        if (lines.length > 1) city = lines[1].trim();
+
+        int startIndex = 0;
+        for (int i = 0; i < lines.length; i++) {
+            String l = lines[i].trim();
+            String lower = l.toLowerCase();
+            if (street == null && (lower.contains("straße") || lower.contains("str.") || lower.contains("platz") || lower.contains("weg"))) {
+                street = l;
+                if (i + 1 < lines.length && lines[i + 1].trim().matches("\\d{5}.*")) {
+                    city = lines[i + 1].trim();
+                    startIndex = i + 2;
+                } else {
+                    startIndex = i + 1;
+                }
+                break;
+            }
+        }
 
         if (street != null || city != null) {
             Log.d("ReceiptParser", "Adresse erkannt: " + street + ", " + city);
@@ -70,7 +87,7 @@ public class ReceiptParser {
 
         PurchaseItem lastItem = null;
         String pendingName = null;
-        for (int i = 2; i < lines.length; i++) {
+        for (int i = startIndex; i < lines.length; i++) {
             String line = lines[i].trim();
             if (line.isEmpty()) {
                 continue;
@@ -100,14 +117,20 @@ public class ReceiptParser {
                 double adv = parseDouble(advMatcher.group(1));
                 String oldName = lastItem.getName();
                 double newPrice = lastItem.getPrice() + adv;
-                if (newPrice >= 0) {
-                    lastItem = new PurchaseItem(oldName, newPrice);
-                    items.set(items.size() - 1, lastItem);
-                } else {
-                    items.remove(items.size() - 1);
-                    lastItem = null;
-                }
-                Log.d("ReceiptParser", "Preisvorteil erkannt f\u00fcr: " + oldName + " -> Neuer Preis: " + newPrice);
+                lastItem = new PurchaseItem(oldName, newPrice);
+                items.set(items.size() - 1, lastItem);
+                Log.d("ReceiptParser", "Preisvorteil erkannt: " + oldName + " -> Neuer Preis: " + newPrice);
+                continue;
+            }
+
+            Matcher discMatcher = DISCOUNT_PATTERN.matcher(line);
+            if (discMatcher.matches() && lastItem != null) {
+                double disc = parseDouble(discMatcher.group());
+                String oldName = lastItem.getName();
+                double newPrice = lastItem.getPrice() + disc;
+                lastItem = new PurchaseItem(oldName, newPrice);
+                items.set(items.size() - 1, lastItem);
+                Log.d("ReceiptParser", "Rabatt erkannt: " + disc + " f\u00fcr " + oldName + "; Neuer Preis: " + newPrice);
                 continue;
             }
 
@@ -133,18 +156,24 @@ public class ReceiptParser {
             }
 
             if (dateTime == null) {
-                Matcher dtMatcher = DATE_TIME_PATTERN.matcher(line);
-                if (dtMatcher.find()) {
-                    DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-                    dateTime = LocalDateTime.parse(dtMatcher.group(1) + " " + dtMatcher.group(2), df);
+                Matcher isoMatcher = ISO_DATE_PATTERN.matcher(line);
+                if (isoMatcher.find()) {
+                    dateTime = LocalDateTime.parse(isoMatcher.group(1));
                     Log.d("ReceiptParser", "Datum erkannt: " + dateTime);
                     continue;
                 }
-                Matcher dMatcher = DATE_ONLY_PATTERN.matcher(line);
+                Matcher dMatcher = DATE_PATTERN.matcher(line);
                 if (dMatcher.find()) {
-                    DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-                    LocalDate d = LocalDate.parse(dMatcher.group(1), df);
-                    dateTime = LocalDateTime.of(d, LocalTime.MIDNIGHT);
+                    String d = dMatcher.group(1);
+                    String t = dMatcher.group(2);
+                    if (t != null) {
+                        DateTimeFormatter df = DateTimeFormatter.ofPattern(d.length() == 8 ? "dd.MM.yy HH:mm" : "dd.MM.yyyy HH:mm");
+                        dateTime = LocalDateTime.parse(d + " " + t, df);
+                    } else {
+                        DateTimeFormatter df = DateTimeFormatter.ofPattern(d.length() == 8 ? "dd.MM.yy" : "dd.MM.yyyy");
+                        LocalDate ld = LocalDate.parse(d, df);
+                        dateTime = LocalDateTime.of(ld, LocalTime.MIDNIGHT);
+                    }
                     Log.d("ReceiptParser", "Datum erkannt: " + dateTime);
                     continue;
                 }
@@ -156,6 +185,13 @@ public class ReceiptParser {
 
         for (PurchaseItem item : items) {
             Log.d("ReceiptParser", "Artikel: " + item.getName() + " / " + item.getPrice());
+        }
+        double sum = 0.0;
+        for (PurchaseItem p : items) {
+            sum += p.getPrice();
+        }
+        if (total != 0.0 && Math.abs(sum - total) > 0.01) {
+            Log.d("ReceiptParser", "Warnung: Artikelsumme " + sum + " stimmt nicht mit Gesamtbetrag " + total + " überein");
         }
         if (street != null || city != null) {
             StringBuilder addr = new StringBuilder();
@@ -183,87 +219,30 @@ public class ReceiptParser {
      * more easily.
      */
     public static ParsedReceipt parseReceipt(String ocrText) {
-        List<Article> articleList = new ArrayList<>();
-        String[] lines = ocrText.split("\n");
+        ReceiptParser parser = new ReceiptParser();
+        ReceiptData data = parser.parse(ocrText);
 
         String address = "";
+        if (data.getStreet() != null) {
+            address += data.getStreet();
+        }
+        if (data.getCity() != null) {
+            if (!address.isEmpty()) address += ", ";
+            address += data.getCity();
+        }
+
         String date = "";
-        double totalPrice = 0.0;
-
-        Pattern pricePattern = Pattern.compile("^-?[0-9]{1,3},[0-9]{2}$");
-        Pattern datePattern = Pattern.compile("\\b(\\d{2}\\.\\d{2}\\.\\d{2,4})\\b");
-
-        if (lines.length > 0) {
-            address = lines[0].trim();
-        }
-        if (lines.length > 1 && lines[1].trim().matches(".*\\d{5}.*")) {
-            address += (address.isEmpty() ? "" : ", ") + lines[1].trim();
+        if (data.getDateTime() != null) {
+            DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            date = data.getDateTime().toLocalDate().format(df);
         }
 
-        for (int i = 0; i < lines.length; i++) {
-            String currentLine = lines[i].trim();
-            Log.d("ReceiptParser", "Zeile[" + i + "]: " + currentLine);
-
-            Matcher dateMatcher = datePattern.matcher(currentLine);
-            if (dateMatcher.find()) {
-                date = dateMatcher.group(1);
-            }
-
-            String lower = currentLine.toLowerCase();
-            if (lower.contains("gesamt") || lower.contains("summe")) {
-                Matcher m = Pattern.compile("(-?[0-9]{1,3},[0-9]{2})").matcher(currentLine);
-                if (m.find()) {
-                    totalPrice = parseGermanPrice(m.group(1));
-                }
-                continue;
-            }
-
-            if (lower.contains("pfand") || lower.contains("girocard") || lower.contains("kartenzahlung") ||
-                    lower.contains("ust-id") || lower.contains("beleg-nr") || lower.contains("seriennr")) {
-                continue;
-            }
-
-            if (lower.contains("preisvorteil") && !articleList.isEmpty()) {
-                Matcher m = Pattern.compile("(-?[0-9]{1,3},[0-9]{2})").matcher(currentLine);
-                if (m.find()) {
-                    double adv = parseGermanPrice(m.group(1));
-                    Article last = articleList.get(articleList.size() - 1);
-                    last.setPrice(last.getPrice() + adv);
-                }
-                continue;
-            }
-
-            if (i + 1 < lines.length) {
-                String nextLine = lines[i + 1].trim();
-                if (pricePattern.matcher(nextLine).matches() && !pricePattern.matcher(currentLine).matches()) {
-                    articleList.add(new Article(currentLine, parseGermanPrice(nextLine)));
-                    i++; // skip price line
-                    continue;
-                }
-            }
-
-            Matcher inlineItem = Pattern.compile("^(.+?)\\s+(-?[0-9]{1,3},[0-9]{2})\\s*[A-Z]?$").matcher(currentLine);
-            if (inlineItem.matches()) {
-                String name = inlineItem.group(1).trim();
-                if (name.toLowerCase().contains("pfand") || name.toLowerCase().contains("girocard") ||
-                        name.toLowerCase().contains("kartenzahlung") || name.toLowerCase().contains("ust-id") ||
-                        name.toLowerCase().contains("beleg-nr") || name.toLowerCase().contains("seriennr")) {
-                    continue;
-                }
-                double price = parseGermanPrice(inlineItem.group(2));
-                articleList.add(new Article(name, price));
-            }
+        List<Article> articleList = new ArrayList<>();
+        for (PurchaseItem pi : data.getItems()) {
+            articleList.add(new Article(pi.getName(), pi.getPrice()));
         }
 
-        Log.d("ReceiptParser", "Adresse: " + address);
-        Log.d("ReceiptParser", "Datum: " + date);
-        Log.d("ReceiptParser", "Gesamtpreis: " + totalPrice);
-
-        for (Article a : articleList) {
-            Log.d("ReceiptParser", "Artikel: " + a.getName() + " / " + a.getPrice());
-        }
-
-        return new ParsedReceipt(articleList, date, totalPrice, address);
+        return new ParsedReceipt(articleList, date, data.getTotal(), address);
     }
 
     /**
