@@ -67,6 +67,17 @@ public class ReceiptParser {
     private static final Pattern IGNORE_LINE_PATTERN = Pattern.compile(
             "(?i)(TA-?Nr|TSE|Bonkopie|Seriennummer|Transaktionsnummer|UST-ID|Kartennr|Seriennr|Signatur|Beleg|Kontaktlos|Karte|MWST|Betrag|^EUR$|www\\.lidl\\.de)");
 
+    // Certain lines on receipts should never be treated as item names even if
+    // they look similar to normal text lines. These include total lines or tax
+    // summaries which can easily be misinterpreted when using OCR.
+    private static final List<String> FORBIDDEN_ARTICLE_NAMES = Arrays.asList(
+            "zu zahlen",
+            "gesamter preisvorteil",
+            "a 7 %",
+            "b 19%",
+            "summe"
+    );
+
     public ReceiptData parse(String text) {
         Log.d("ReceiptParser", "OCR-Rohtext:\n" + text);
 
@@ -359,6 +370,11 @@ public class ReceiptParser {
                 continue;
             }
 
+            if (isForbiddenArticleName(rowText)) {
+                pending = null;
+                continue;
+            }
+
             Matcher advMatcher = ADVANTAGE_PATTERN.matcher(rowText);
             if (advMatcher.matches() && lastItem != null) {
                 double diff = parseGermanPrice(advMatcher.group(1));
@@ -519,6 +535,21 @@ public class ReceiptParser {
         }
 
         return artikelListe;
+    }
+
+    private static String normalize(String text) {
+        return text.toLowerCase().replaceAll("[^a-z0-9]", "");
+    }
+
+    private static boolean isForbiddenArticleName(String text) {
+        String norm = normalize(text);
+        for (String f : FORBIDDEN_ARTICLE_NAMES) {
+            String nf = normalize(f);
+            if (norm.equals(nf) || norm.contains(nf)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static double parseDouble(String value) {
