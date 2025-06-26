@@ -252,28 +252,27 @@ public class ReceiptParser {
             if (priceMatcher.matches()) {
                 double price = parseDouble(priceMatcher.group(1));
 
+                if (pendingName != null) {
+                    // Preis gehört zu pendingName → normaler Artikel
+                    lastItem = new PurchaseItem(pendingName, price);
+                    items.add(lastItem);
+                    Log.d("ReceiptParser", "Erkannt: Artikel: " + pendingName + " / Preis: " + price);
+                    pendingName = null;
+                    continue;
+                }
+
                 if (price < 0 && lastItem != null) {
-                    // Preisvorteil erkannt → auf vorherigen Artikel anwenden
+                    // Preisvorteil zu vorherigem Artikel
                     double newPrice = lastItem.getPrice() + price;
                     if (newPrice < 0) {
-                        Log.d("ReceiptParser", "Artikel entfernt wegen negativem Gesamtpreis: " + lastItem.getName());
                         items.remove(items.size() - 1);
+                        Log.d("ReceiptParser", "Artikel entfernt wegen negativem Gesamtpreis: " + lastItem.getName());
                         lastItem = null;
                     } else {
                         lastItem = new PurchaseItem(lastItem.getName(), newPrice);
                         items.set(items.size() - 1, lastItem);
                         Log.d("ReceiptParser", "Preisvorteil angewendet: " + price + " → Neuer Preis: " + newPrice);
                     }
-                    pendingName = null;
-                    continue;
-                }
-
-                if (pendingName != null) {
-                    // Normaler Artikel mit Preis
-                    lastItem = new PurchaseItem(pendingName, price);
-                    Log.d("ReceiptParser", "Erkannt: Artikel: " + pendingName + " / Preis: " + price);
-                    items.add(lastItem);
-                    pendingName = null;
                     continue;
                 }
             }
