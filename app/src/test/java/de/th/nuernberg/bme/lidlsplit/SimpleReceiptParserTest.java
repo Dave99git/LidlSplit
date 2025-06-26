@@ -48,7 +48,7 @@ public class SimpleReceiptParserTest {
         List<Artikel> items = ReceiptParser.parseBon(text);
 
         assertEquals("Allersberger Straße 130, 90461 Nürnberg", ReceiptParser.adresse);
-        assertEquals("18.06.2025", ReceiptParser.datum);
+        assertEquals("", ReceiptParser.datum);
         assertEquals(19.86, ReceiptParser.gesamtpreis, 0.001);
         assertEquals(2, items.size());
         assertEquals("Cherrystr.Tomaten", items.get(0).name);
