@@ -77,4 +77,19 @@ public class SimpleReceiptParserTest {
         assertEquals("Cherrystrauchtomaten", items.get(0).name);
         assertEquals("Laugenbrezel 10er", items.get(1).name);
     }
+
+    @Test
+    public void parseBonHandlesMultilinePreisvorteil() {
+        String text = "Brot\n" +
+                "1,99\n" +
+                "PREISVORTEIL\n" +
+                "-0,20\n" +
+                "Zu zahlen 1,79";
+
+        List<Artikel> items = ReceiptParser.parseBon(text);
+
+        assertEquals(1, items.size());
+        assertEquals("Brot", items.get(0).name);
+        assertEquals(1.79, items.get(0).preis, 0.001);
+    }
 }
