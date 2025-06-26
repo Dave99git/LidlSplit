@@ -158,13 +158,21 @@ public class ReceiptParser {
 
             if (!afterTotalLine) {
 
-            if (line.toLowerCase().contains("preisvorteil")) {
+            if ((line.toLowerCase().contains("preisvorteil") || DISCOUNT_PATTERN.matcher(line).matches()) && lastItem != null) {
                 double diff = Double.NaN;
 
-                Matcher advMatcher2 = ADVANTAGE_PATTERN.matcher(line);
-                if (advMatcher2.find()) {
-                    diff = parseDouble(advMatcher2.group(1));
-                } else if (i + 1 < lines.length) {
+                Matcher advMatcher = ADVANTAGE_PATTERN.matcher(line);
+                if (advMatcher.find()) {
+                    diff = parseDouble(advMatcher.group(1));
+                } else {
+                    Matcher discMatcher = DISCOUNT_PATTERN.matcher(line);
+                    if (discMatcher.matches()) {
+                        diff = parseDouble(discMatcher.group());
+                    }
+                }
+
+                // Wenn Preis nicht in derselben Zeile, dann evtl. nächste Zeile
+                if (Double.isNaN(diff) && i + 1 < lines.length) {
                     String nextLine = lines[i + 1].trim();
                     Matcher pm = PRICE_ONLY_PATTERN.matcher(nextLine);
                     if (pm.matches()) {
@@ -173,36 +181,17 @@ public class ReceiptParser {
                     }
                 }
 
-                if (!Double.isNaN(diff) && lastItem != null) {
+                if (!Double.isNaN(diff)) {
                     double newPrice = lastItem.getPrice() + diff;
                     if (newPrice < 0) {
+                        Log.d("ReceiptParser", "Artikel entfernt wegen negativem Gesamtpreis: " + lastItem.getName());
                         items.remove(items.size() - 1);
-                        Log.d("ReceiptParser", "Negativer Preisvorteil, Artikel entfernt: " + lastItem.getName());
                         lastItem = null;
                     } else {
                         lastItem = new PurchaseItem(lastItem.getName(), newPrice);
                         items.set(items.size() - 1, lastItem);
-                        Log.d("ReceiptParser", "Preisvorteil: " + diff + " → Neuer Preis: " + newPrice);
+                        Log.d("ReceiptParser", "Preisvorteil angewendet: " + diff + " → Neuer Preis: " + newPrice);
                     }
-                }
-
-                pendingName = null;
-                continue;
-            }
-
-            Matcher discMatcher = DISCOUNT_PATTERN.matcher(line);
-            if (discMatcher.matches() && lastItem != null) {
-                double disc = parseDouble(discMatcher.group());
-
-                double newPrice = lastItem.getPrice() + disc;
-                if (newPrice < 0) {
-                    Log.d("ReceiptParser", "Artikel entfernt wegen negativem Gesamtpreis nach Rabatt: " + lastItem.getName());
-                    items.remove(items.size() - 1);
-                    lastItem = null;
-                } else {
-                    lastItem = new PurchaseItem(lastItem.getName(), newPrice);
-                    items.set(items.size() - 1, lastItem);
-                    Log.d("ReceiptParser", "Rabatt erkannt (ohne expliziten Hinweis): " + disc + " → Neuer Preis: " + newPrice);
                 }
 
                 pendingName = null;
