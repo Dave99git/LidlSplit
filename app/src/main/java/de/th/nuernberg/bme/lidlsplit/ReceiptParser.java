@@ -272,51 +272,58 @@ public class ReceiptParser {
      * item name and price are returned.
      */
     public List<PurchaseItem> parseOcr(Text ocrResult) {
-        List<Text.Line> lines = new ArrayList<>();
+        // Collect all text elements and log their positions for debugging
+        List<Text.Element> elements = new ArrayList<>();
         for (Text.TextBlock block : ocrResult.getTextBlocks()) {
             Rect bb = block.getBoundingBox();
             Log.d("OCR", "Block: " + block.getText().replace("\n", " ") + " | Box: " + bb);
-            lines.addAll(block.getLines());
+            for (Text.Line line : block.getLines()) {
+                for (Text.Element el : line.getElements()) {
+                    Log.d("OCR-ELEMENT", el.getText() + " @ " + el.getBoundingBox());
+                    elements.add(el);
+                }
+            }
         }
 
-        lines.sort(Comparator.comparingInt(l -> {
-            Rect b = l.getBoundingBox();
+        // Sort elements top-to-bottom
+        elements.sort(Comparator.comparingInt(e -> {
+            Rect b = e.getBoundingBox();
             return b != null ? b.top : 0;
         }));
 
+        // Group elements that are horizontally aligned
+        List<List<Text.Element>> rows = new ArrayList<>();
+        List<Text.Element> current = new ArrayList<>();
+        int currentCenter = Integer.MIN_VALUE;
+        for (Text.Element e : elements) {
+            Rect b = e.getBoundingBox();
+            if (b == null) continue;
+            int center = b.centerY();
+            if (current.isEmpty() || Math.abs(center - currentCenter) <= 20) {
+                current.add(e);
+                if (current.size() == 1) currentCenter = center;
+            } else {
+                rows.add(new ArrayList<>(current));
+                current.clear();
+                current.add(e);
+                currentCenter = center;
+            }
+        }
+        if (!current.isEmpty()) {
+            rows.add(current);
+        }
+
         List<PurchaseItem> items = new ArrayList<>();
-        Text.Line pending = null;
         PurchaseItem lastItem = null;
+        List<Text.Element> pending = null;
 
-        for (Text.Line line : lines) {
-            Rect box = line.getBoundingBox();
-            String lineText = line.getText().trim();
-            Log.d("OCR", "Line: " + lineText + " | Box: " + box);
-
-            if (IGNORE_LINE_PATTERN.matcher(lineText).find()) {
-                continue;
-            }
-
-            Matcher advMatcher = ADVANTAGE_PATTERN.matcher(lineText);
-            if (advMatcher.matches() && lastItem != null) {
-                double diff = parseGermanPrice(advMatcher.group(1));
-                lastItem = new PurchaseItem(lastItem.getName(), lastItem.getPrice() + diff);
-                items.set(items.size() - 1, lastItem);
-                continue;
-            }
-
-            Matcher discMatcher = DISCOUNT_PATTERN.matcher(lineText);
-            if (discMatcher.matches() && lastItem != null) {
-                double diff = parseGermanPrice(discMatcher.group());
-                lastItem = new PurchaseItem(lastItem.getName(), lastItem.getPrice() + diff);
-                items.set(items.size() - 1, lastItem);
-                continue;
-            }
+        for (List<Text.Element> row : rows) {
+            row.sort(Comparator.comparingInt(e -> e.getBoundingBox().left));
 
             StringBuilder nameBuilder = new StringBuilder();
             String priceText = null;
-            for (Text.Element e : line.getElements()) {
-                String t = e.getText();
+            for (Text.Element el : row) {
+                String t = el.getText();
                 if (PRICE_ELEMENT_PATTERN.matcher(t).matches()) {
                     priceText = t;
                 } else {
@@ -325,27 +332,58 @@ public class ReceiptParser {
                 }
             }
 
-            if (priceText != null && nameBuilder.length() > 0) {
+            String rowText = nameBuilder.toString().trim();
+            if (priceText != null) {
+                rowText = rowText.replaceAll("\s+", " ");
+            }
+
+            if (IGNORE_LINE_PATTERN.matcher(rowText).find()) {
+                continue;
+            }
+
+            Matcher advMatcher = ADVANTAGE_PATTERN.matcher(rowText);
+            if (advMatcher.matches() && lastItem != null) {
+                double diff = parseGermanPrice(advMatcher.group(1));
+                lastItem = new PurchaseItem(lastItem.getName(), lastItem.getPrice() + diff);
+                items.set(items.size() - 1, lastItem);
+                continue;
+            }
+
+            Matcher discMatcher = DISCOUNT_PATTERN.matcher(rowText);
+            if (discMatcher.matches() && lastItem != null) {
+                double diff = parseGermanPrice(discMatcher.group());
+                lastItem = new PurchaseItem(lastItem.getName(), lastItem.getPrice() + diff);
+                items.set(items.size() - 1, lastItem);
+                continue;
+            }
+
+            if (priceText != null && rowText.length() > 0) {
                 double price = parseGermanPrice(priceText);
-                lastItem = new PurchaseItem(nameBuilder.toString().trim(), price);
+                lastItem = new PurchaseItem(rowText, price);
                 items.add(lastItem);
                 pending = null;
                 continue;
             }
 
-            if (priceText == null && nameBuilder.length() > 0) {
-                pending = line;
+            if (priceText == null && rowText.length() > 0) {
+                pending = row;
                 continue;
             }
 
-            if (priceText != null && nameBuilder.length() == 0 && pending != null) {
-                Rect prev = pending.getBoundingBox();
+            if (priceText != null && rowText.isEmpty() && pending != null) {
+                Rect prev = pending.get(0).getBoundingBox();
+                Rect box = row.get(0).getBoundingBox();
                 if (prev != null && box != null) {
                     int vDist = Math.abs(box.top - prev.bottom);
                     int hDist = Math.abs(box.left - prev.left);
                     if (vDist < 40 && hDist < 50) {
+                        StringBuilder nb = new StringBuilder();
+                        for (Text.Element pe : pending) {
+                            if (nb.length() > 0) nb.append(' ');
+                            nb.append(pe.getText());
+                        }
                         double price = parseGermanPrice(priceText);
-                        lastItem = new PurchaseItem(pending.getText().trim(), price);
+                        lastItem = new PurchaseItem(nb.toString().trim(), price);
                         items.add(lastItem);
                         pending = null;
                     }
