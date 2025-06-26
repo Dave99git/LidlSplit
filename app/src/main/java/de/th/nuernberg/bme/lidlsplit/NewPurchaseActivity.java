@@ -44,6 +44,9 @@ public class NewPurchaseActivity extends AppCompatActivity {
     private TextView navPeople;
     private TextView tvResult;
     private TextView tvPaidLabel;
+    private TextView tvAddress;
+    private TextView tvDate;
+    private TextView tvTotal;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,6 +76,9 @@ public class NewPurchaseActivity extends AppCompatActivity {
 
         tvResult = findViewById(R.id.tvResult);
         tvPaidLabel = findViewById(R.id.tvPaidLabel);
+        tvAddress = findViewById(R.id.tvAddress);
+        tvDate = findViewById(R.id.tvDate);
+        tvTotal = findViewById(R.id.tvTotal);
 
         navPurchases = findViewById(R.id.navPurchases);
         navPeople = findViewById(R.id.navPeople);
@@ -118,21 +124,30 @@ public class NewPurchaseActivity extends AppCompatActivity {
             itemRecycler.setVisibility(View.VISIBLE);
         }
 
-        StringBuilder sb = new StringBuilder();
+        tvResult.setText("");
+
         if (data.getDateTime() != null) {
             DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-            sb.append(df.format(data.getDateTime())).append("\n");
+            tvDate.setText(df.format(data.getDateTime()));
+        } else {
+            tvDate.setText("");
         }
+
+        StringBuilder addr = new StringBuilder();
         if (data.getStreet() != null) {
-            sb.append(data.getStreet()).append("\n");
+            addr.append(data.getStreet());
         }
         if (data.getCity() != null) {
-            sb.append(data.getCity()).append("\n");
+            if (addr.length() > 0) addr.append("\n");
+            addr.append(data.getCity());
         }
+        tvAddress.setText(addr.toString());
+
         if (data.getTotal() != 0.0) {
-            sb.append(String.format(Locale.getDefault(), "Gesamt: %.2f€", data.getTotal()));
+            tvTotal.setText(getString(R.string.total_label, data.getTotal()));
+        } else {
+            tvTotal.setText("");
         }
-        tvResult.setText(sb.toString());
     }
 
     private void createInvoice() {
