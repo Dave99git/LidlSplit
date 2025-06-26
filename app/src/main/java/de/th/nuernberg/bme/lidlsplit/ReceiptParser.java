@@ -132,14 +132,19 @@ public class ReceiptParser {
         }
 
         Artikel lastArtikel = null;
-        Pattern itemPattern = Pattern.compile("^(.+?)\\s+(\\d+[.,]?\\d*)\\s*[A-Z]?$");
+        Pattern itemPattern = Pattern.compile("^(.+?)\\s+(\\d+[.,]?\\d*)\\s*(?:€|EUR)?\\s*[A-Z]?$");
         Pattern advPattern = Pattern.compile("(?i)preisvorteil\\s+(-?\\d+[.,]?\\d*)");
-        Pattern totalPattern = Pattern.compile("(?i)(gesamtsumme|gesamt|zu\\s+zahlen).*?(\\d+[.,]?\\d*)");
-        Pattern datePattern = Pattern.compile("\\d{2}\\.\\d{2}\\.\\d{4}");
+        Pattern totalPattern = Pattern.compile("(?i)(gesamtsumme|summe|gesamt|zu\\s+zahlen).*?(\\d+[.,]?\\d*)");
+        Pattern datePattern = Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})");
+        Pattern ignorePattern = Pattern.compile("(?i)(Allersberger\\s+Stra\\w*|Signaturzähler|TA-?Nr\.)");
 
         for (int i = 2; i < lines.length; i++) {
             String line = lines[i].trim();
             if (line.isEmpty()) {
+                continue;
+            }
+
+            if (ignorePattern.matcher(line).find()) {
                 continue;
             }
 
@@ -170,8 +175,8 @@ public class ReceiptParser {
             }
 
             Matcher dateMatcher = datePattern.matcher(line);
-            if (dateMatcher.matches()) {
-                datum = dateMatcher.group();
+            if (dateMatcher.find()) {
+                datum = dateMatcher.group(1);
             }
         }
 
