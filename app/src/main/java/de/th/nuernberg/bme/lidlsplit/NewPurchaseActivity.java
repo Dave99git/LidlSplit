@@ -17,13 +17,9 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.text.TextRecognition;
-import com.google.mlkit.vision.text.TextRecognizer;
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
-import com.google.mlkit.vision.text.Text;
+import de.th.nuernberg.bme.lidlsplit.ReceiptScanner;
 
-import java.io.IOException;
+
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,28 +92,23 @@ public class NewPurchaseActivity extends AppCompatActivity {
 
     private void processImage(Uri uri) {
         if (uri == null) return;
-        try {
-            InputImage image = InputImage.fromFilePath(this, uri);
-            TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
-            recognizer.process(image)
-                    .addOnSuccessListener(result -> {
-                        parseOcrResult(result);
-                        itemAdapter.notifyDataSetChanged();
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(this, "OCR failed", Toast.LENGTH_SHORT).show());
-        } catch (IOException e) {
-            Toast.makeText(this, "Image error", Toast.LENGTH_SHORT).show();
-        }
+        ReceiptScanner.scanImage(this, uri, new ReceiptScanner.Callback() {
+            @Override
+            public void onSuccess(ReceiptData data, List<PurchaseItem> parsedItems) {
+                items.clear();
+                items.addAll(parsedItems);
+                itemAdapter.notifyDataSetChanged();
+                updateUi(data);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(NewPurchaseActivity.this, "OCR failed", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void parseOcrResult(Text ocrText) {
-        Log.d("OCR", "Starte Parsing des OCR-Ergebnisses…");
-        ReceiptParser parser = new ReceiptParser();
-        List<PurchaseItem> boxItems = parser.parseOcr(ocrText);
-        ReceiptData meta = parser.parse(ocrText.getText());
-
-        items.clear();
-        items.addAll(boxItems);
+    private void updateUi(ReceiptData meta) {
         if (items.isEmpty()) {
             itemRecycler.setVisibility(View.GONE);
         } else {

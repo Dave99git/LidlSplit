@@ -60,7 +60,7 @@ public class ReceiptParser {
     private static final Pattern PRICE_ONLY_PATTERN =
             Pattern.compile("(-?\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
     private static final Pattern PRICE_ELEMENT_PATTERN =
-            Pattern.compile("-?\\d+[.,]\\d{2}");
+            Pattern.compile("-?\\d+[.,]\\d{2}A?");
     // Lines containing the following keywords should never be treated as item
     // names. This helps to avoid false positives such as "MWST" or "Karte" when
     // the OCR output is noisy.
@@ -274,6 +274,8 @@ public class ReceiptParser {
     public List<PurchaseItem> parseOcr(Text ocrResult) {
         List<Text.Line> lines = new ArrayList<>();
         for (Text.TextBlock block : ocrResult.getTextBlocks()) {
+            Rect bb = block.getBoundingBox();
+            Log.d("OCR", "Block: " + block.getText().replace("\n", " ") + " | Box: " + bb);
             lines.addAll(block.getLines());
         }
 
@@ -284,10 +286,32 @@ public class ReceiptParser {
 
         List<PurchaseItem> items = new ArrayList<>();
         Text.Line pending = null;
+        PurchaseItem lastItem = null;
 
         for (Text.Line line : lines) {
             Rect box = line.getBoundingBox();
-            Log.d("OCR", "Line: " + line.getText() + " | Box: " + box);
+            String lineText = line.getText().trim();
+            Log.d("OCR", "Line: " + lineText + " | Box: " + box);
+
+            if (IGNORE_LINE_PATTERN.matcher(lineText).find()) {
+                continue;
+            }
+
+            Matcher advMatcher = ADVANTAGE_PATTERN.matcher(lineText);
+            if (advMatcher.matches() && lastItem != null) {
+                double diff = parseGermanPrice(advMatcher.group(1));
+                lastItem = new PurchaseItem(lastItem.getName(), lastItem.getPrice() + diff);
+                items.set(items.size() - 1, lastItem);
+                continue;
+            }
+
+            Matcher discMatcher = DISCOUNT_PATTERN.matcher(lineText);
+            if (discMatcher.matches() && lastItem != null) {
+                double diff = parseGermanPrice(discMatcher.group());
+                lastItem = new PurchaseItem(lastItem.getName(), lastItem.getPrice() + diff);
+                items.set(items.size() - 1, lastItem);
+                continue;
+            }
 
             StringBuilder nameBuilder = new StringBuilder();
             String priceText = null;
@@ -303,7 +327,8 @@ public class ReceiptParser {
 
             if (priceText != null && nameBuilder.length() > 0) {
                 double price = parseGermanPrice(priceText);
-                items.add(new PurchaseItem(nameBuilder.toString().trim(), price));
+                lastItem = new PurchaseItem(nameBuilder.toString().trim(), price);
+                items.add(lastItem);
                 pending = null;
                 continue;
             }
@@ -316,11 +341,12 @@ public class ReceiptParser {
             if (priceText != null && nameBuilder.length() == 0 && pending != null) {
                 Rect prev = pending.getBoundingBox();
                 if (prev != null && box != null) {
-                    int dist = Math.abs(box.top - prev.top);
-                    int maxH = Math.max(prev.height(), box.height());
-                    if (dist < maxH) {
+                    int vDist = Math.abs(box.top - prev.bottom);
+                    int hDist = Math.abs(box.left - prev.left);
+                    if (vDist < 40 && hDist < 50) {
                         double price = parseGermanPrice(priceText);
-                        items.add(new PurchaseItem(pending.getText().trim(), price));
+                        lastItem = new PurchaseItem(pending.getText().trim(), price);
+                        items.add(lastItem);
                         pending = null;
                     }
                 }
