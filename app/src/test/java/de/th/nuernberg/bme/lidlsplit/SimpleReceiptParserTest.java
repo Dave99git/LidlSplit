@@ -56,4 +56,25 @@ public class SimpleReceiptParserTest {
         assertEquals("Laugenbrezel 10er", items.get(1).name);
         assertEquals(1.99, items.get(1).preis, 0.001);
     }
+
+    @Test
+    public void parseBonStopsAfterZuZahlen() {
+        String text = "Allersberger Straße 130\n" +
+                "90461 Nürnberg\n" +
+                "Cherrystrauchtomaten\n" +
+                "1,79\n" +
+                "Laugenbrezel 10er\n" +
+                "1,99\n" +
+                "Zu zahlen 19,86\n" +
+                "Pfand\n" +
+                "0,25\n" +
+                "18.06.2025";
+
+        List<Artikel> items = ReceiptParser.parseBon(text);
+
+        assertEquals(2, items.size());
+        assertEquals(19.86, ReceiptParser.gesamtpreis, 0.001);
+        assertEquals("Cherrystrauchtomaten", items.get(0).name);
+        assertEquals("Laugenbrezel 10er", items.get(1).name);
+    }
 }

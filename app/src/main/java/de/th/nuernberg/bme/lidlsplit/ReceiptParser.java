@@ -100,9 +100,27 @@ public class ReceiptParser {
 
         PurchaseItem lastItem = null;
         String pendingName = null;
+        boolean afterTotalLine = false;
         for (int i = startIndex; i < lines.length; i++) {
             String line = lines[i].trim();
             if (line.isEmpty()) {
+                continue;
+            }
+
+            if (line.contains("Zu zahlen")) {
+                Matcher m = PRICE_ONLY_PATTERN.matcher(line);
+                if (m.find()) {
+                    total = parseDouble(m.group(1));
+                } else if (i + 1 < lines.length) {
+                    String next = lines[i + 1].trim();
+                    Matcher n = PRICE_ONLY_PATTERN.matcher(next);
+                    if (n.matches()) {
+                        total = parseDouble(n.group(1));
+                        i++;
+                    }
+                }
+                afterTotalLine = true;
+                Log.d("ReceiptParser", "Gesamtbetrag erkannt: " + total);
                 continue;
             }
 
@@ -129,6 +147,7 @@ public class ReceiptParser {
                 continue;
             }
 
+            if (!afterTotalLine) {
             Matcher advMatcher = ADVANTAGE_PATTERN.matcher(line);
             if (advMatcher.matches() && lastItem != null) {
                 double adv = parseDouble(advMatcher.group(1));
@@ -150,7 +169,7 @@ public class ReceiptParser {
                 Log.d("ReceiptParser", "Rabatt erkannt: " + disc + " f\u00fcr " + oldName + "; Neuer Preis: " + newPrice);
                 continue;
             }
-
+            
             Matcher priceMatcher = PRICE_ONLY_PATTERN.matcher(line);
             if (priceMatcher.matches() && pendingName != null) {
                 double price = parseDouble(priceMatcher.group(1));
@@ -170,6 +189,7 @@ public class ReceiptParser {
                 items.add(lastItem);
                 pendingName = null;
                 continue;
+            }
             }
 
             if (dateTime == null) {
@@ -406,6 +426,7 @@ public class ReceiptParser {
         gesamtpreis = 0.0;
 
         List<Artikel> artikelListe = new ArrayList<>();
+        boolean afterTotalLine = false;
 
         Pattern textOnly = Pattern.compile("[A-Za-zÄÖÜäöüß\\s\\-.]+");
         Pattern priceOnly = Pattern.compile("[-+]?\\d{1,3},\\d{2}");
@@ -444,7 +465,23 @@ public class ReceiptParser {
                 }
             }
 
-            // Gesamtpreis erkennen
+            // Gesamtpreis erkennen und ggf. Artikelliste beenden
+            if (line.contains("Zu zahlen")) {
+                Matcher pm = priceOnly.matcher(line);
+                if (pm.find()) {
+                    gesamtpreis = parseDouble(pm.group());
+                } else if (i + 1 < lines.length) {
+                    String next = lines[i + 1].trim();
+                    pm = priceOnly.matcher(next);
+                    if (pm.matches()) {
+                        gesamtpreis = parseDouble(pm.group());
+                        i++;
+                    }
+                }
+                afterTotalLine = true;
+                continue;
+            }
+
             if (lower.contains("zu zahlen") || lower.contains("summe")) {
                 Matcher pm = priceOnly.matcher(line);
                 if (pm.find()) {
@@ -478,16 +515,18 @@ public class ReceiptParser {
             }
 
             // Artikel mit Preis in einer Zeile
-            Matcher itemMatcher = itemLine.matcher(line);
-            if (itemMatcher.matches()) {
-                artikelListe.add(new Artikel(itemMatcher.group(1).trim(), parseDouble(itemMatcher.group(2))));
-                lastName = null;
-                continue;
+            if (!afterTotalLine) {
+                Matcher itemMatcher = itemLine.matcher(line);
+                if (itemMatcher.matches()) {
+                    artikelListe.add(new Artikel(itemMatcher.group(1).trim(), parseDouble(itemMatcher.group(2))));
+                    lastName = null;
+                    continue;
+                }
             }
 
             // Nur Preiszeile
             Matcher priceMatcher = priceOnly.matcher(line);
-            if (priceMatcher.matches() && lastName != null) {
+            if (!afterTotalLine && priceMatcher.matches() && lastName != null) {
                 artikelListe.add(new Artikel(lastName, parseDouble(priceMatcher.group())));
                 lastName = null;
                 continue;
