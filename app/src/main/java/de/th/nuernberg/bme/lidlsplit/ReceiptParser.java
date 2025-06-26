@@ -48,7 +48,7 @@ public class ReceiptParser {
             "^([A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß0-9\\s\\-.]*?)\\s+(\\d+[.,]\\d{2})\\s*(?:€|EUR|A)?$",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern TOTAL_PATTERN =
-            Pattern.compile("(?i)(?:gesamtsumme|summe|gesamt|zu\\s+zahlen).*?(\\d+[.,]?\\d*)");
+            Pattern.compile("(?i)(?:gesamtsumme|summe|gesamt|zu\\s+zahlen|betrag).*?(\\d+[.,]?\\d*)");
     private static final Pattern DATE_PATTERN =
             Pattern.compile("(\\d{2}\\.\\d{2}\\.(?:\\d{2}|\\d{4}))(?:\\s+(\\d{2}:\\d{2}))?");
     private static final Pattern ISO_DATE_PATTERN =
@@ -65,7 +65,7 @@ public class ReceiptParser {
     // names. This helps to avoid false positives such as "MWST" or "Karte" when
     // the OCR output is noisy.
     private static final Pattern IGNORE_LINE_PATTERN = Pattern.compile(
-            "(?i)(TA-?Nr|TSE|Bonkopie|Seriennummer|Transaktionsnummer|UST-ID|Kartennr|Seriennr|Signatur|Beleg|Kontaktlos|Karte|MWST|^EUR$|www\\.lidl\\.de)");
+            "(?i)(TA-?Nr|TSE|Bonkopie|Seriennummer|Transaktionsnummer|UST-ID|Kartennr|Seriennr|Signatur|Beleg|Kontaktlos|Karte|MWST|Betrag|^EUR$|www\\.lidl\\.de)");
 
     public ReceiptData parse(String text) {
         Log.d("ReceiptParser", "OCR-Rohtext:\n" + text);
