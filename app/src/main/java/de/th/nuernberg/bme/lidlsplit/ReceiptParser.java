@@ -496,9 +496,20 @@ public class ReceiptParser {
 
             // Preisvorteil (nicht gesamt) verrechnen und Zeile ignorieren
             if (lower.contains("preisvorteil")) {
+                double diff = Double.NaN;
                 Matcher advMatcher = ADVANTAGE_PATTERN.matcher(line);
-                if (advMatcher.find() && !artikelListe.isEmpty()) {
-                    double diff = parseDouble(advMatcher.group(1));
+                if (advMatcher.find()) {
+                    diff = parseDouble(advMatcher.group(1));
+                } else if (i + 1 < lines.length) {
+                    String next = lines[i + 1].trim();
+                    Matcher pm = priceOnly.matcher(next);
+                    if (pm.matches()) {
+                        diff = parseDouble(pm.group(1));
+                        i++; // consume the price line
+                    }
+                }
+
+                if (!Double.isNaN(diff) && !artikelListe.isEmpty()) {
                     Artikel last = artikelListe.get(artikelListe.size() - 1);
                     double newPrice = last.preis + diff;
                     if (newPrice < 0) {
