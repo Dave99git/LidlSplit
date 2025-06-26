@@ -164,17 +164,16 @@ public class ReceiptParser {
             }
 
             if (line.toLowerCase().contains("zu zahlen")) {
-                Matcher m = PRICE_ONLY_PATTERN.matcher(line);
-                if (m.find()) {
-                    total = parseDouble(m.group(1));
-                } else if (i + 1 < lines.length) {
-                    String next = lines[i + 1].trim();
-                    Matcher n = PRICE_ONLY_PATTERN.matcher(next);
-                    if (n.matches()) {
-                        total = parseDouble(n.group(1));
+                // Versuche, die nächsten 5 Zeilen nach einem Preis zu durchsuchen
+                for (int j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+                    String candidate = lines[j].trim();
+                    Matcher m = PRICE_ONLY_PATTERN.matcher(candidate);
+                    if (m.matches()) {
+                        total = parseDouble(m.group(1));
+                        Log.d("ReceiptParser", "Gesamtbetrag erkannt: " + total + " (nach 'zu zahlen')");
+                        break;
                     }
                 }
-                Log.d("ReceiptParser", "Gesamtbetrag erkannt: " + total);
                 break;
             }
 
