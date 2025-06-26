@@ -447,13 +447,16 @@ public class ReceiptParser {
                 }
 
                 if (!Double.isNaN(diff)) {
+                    // diff ist bereits negativ, direkt verwenden
                     double newPrice = lastItem.getPrice() + diff;
                     if (newPrice < 0) {
                         items.remove(items.size() - 1);
+                        Log.d("ReceiptParser", "Artikel entfernt wegen negativem Preis: " + lastItem.getName());
                         lastItem = null;
                     } else {
                         lastItem = new PurchaseItem(lastItem.getName(), newPrice);
                         items.set(items.size() - 1, lastItem);
+                        Log.d("ReceiptParser", "Preisvorteil angewendet: " + diff + " → Neuer Preis: " + newPrice);
                     }
                 }
 
