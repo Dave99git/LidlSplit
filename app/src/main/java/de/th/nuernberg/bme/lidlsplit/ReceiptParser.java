@@ -515,7 +515,15 @@ public class ReceiptParser {
             // Artikelzeile mit Name + Preis
             Matcher itemMatcher = ITEM_PATTERN.matcher(line);
             if (itemMatcher.matches()) {
-                artikelListe.add(new Artikel(itemMatcher.group(1).trim(), parseDouble(itemMatcher.group(2))));
+                String name = itemMatcher.group(1).trim();
+
+                // Entferne " A" am Ende des Artikelnamens
+                if (name.endsWith(" A")) {
+                    name = name.substring(0, name.length() - 2).trim();
+                }
+
+                double price = parseDouble(itemMatcher.group(2));
+                artikelListe.add(new Artikel(name, price));
                 lastName = null;
                 continue;
             }
