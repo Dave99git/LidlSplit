@@ -60,7 +60,7 @@ public class ReceiptParser {
     private static final Pattern DISCOUNT_PATTERN =
             Pattern.compile("^\\-\\d+[.,]\\d{2}$");
     private static final Pattern PRICE_ONLY_PATTERN =
-            Pattern.compile("(-?\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
+            Pattern.compile("^\\s*(-?\\d{1,3}(?:[.,]\\d{2}))\\s*(?:€|EUR)?\\s*[A-Z]?$");
     private static final Pattern PRICE_ELEMENT_PATTERN =
             Pattern.compile("-?\\d+[.,]\\d{2}A?");
     // Lines containing the following keywords should never be treated as item
