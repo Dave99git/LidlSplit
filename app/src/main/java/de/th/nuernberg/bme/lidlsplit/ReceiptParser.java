@@ -22,11 +22,7 @@ public class ReceiptParser {
      * </pre>
      */
     private static final Pattern ITEM_PATTERN =
-            Pattern.compile("^(.+?)\\s+(\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
-
-    /** Pattern for lines that should be ignored when parsing items */
-    private static final Pattern IGNORE_PATTERN =
-            Pattern.compile("(?i)(stra\\u00dfe|signaturzähler|ta-?nr)");
+            Pattern.compile("^(.+?)\\s+(\\d+[.,]?\\d*)\\s*(?:€|EUR)?\\s*[A-Z]?$");
     private static final Pattern TOTAL_PATTERN =
             Pattern.compile("(?i)zu\\s+zahlen.*?(\\d+[.,]?\\d*)");
     private static final Pattern DATE_TIME_PATTERN =
@@ -45,7 +41,6 @@ public class ReceiptParser {
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();
             if (line.isEmpty()) continue;
-            if (IGNORE_PATTERN.matcher(line).find()) continue;
 
             if (total == 0.0) {
                 Matcher totalMatcher = TOTAL_PATTERN.matcher(line);
