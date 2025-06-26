@@ -105,8 +105,10 @@ public class NewPurchaseActivity extends AppCompatActivity {
 
     private void parseText(String text) {
         Log.d("OCR", "Erkannter Bon-Text:\n" + text);
+        Log.d("OCR", "Starte Parsing des OCR-Textes…");
         ReceiptParser parser = new ReceiptParser();
         ReceiptData data = parser.parse(text);
+        Log.d("OCR", "Parsing abgeschlossen, Artikelanzahl: " + data.getItems().size());
 
         items.clear();
         items.addAll(data.getItems());
