@@ -52,6 +52,8 @@ public class ReceiptParser {
             Pattern.compile("(?i)(TA-?Nr|TSE|Bonkopie|Seriennummer)");
 
     public ReceiptData parse(String text) {
+        Log.d("ReceiptParser", "OCR-Rohtext:\n" + text);
+
         List<PurchaseItem> items = new ArrayList<>();
         double total = 0.0;
         String street = null;
@@ -61,6 +63,10 @@ public class ReceiptParser {
         String[] lines = text.split("\n");
         if (lines.length > 0) street = lines[0].trim();
         if (lines.length > 1) city = lines[1].trim();
+
+        if (street != null || city != null) {
+            Log.d("ReceiptParser", "Adresse erkannt: " + street + ", " + city);
+        }
 
         PurchaseItem lastItem = null;
         String pendingName = null;
@@ -78,11 +84,13 @@ public class ReceiptParser {
                 Matcher totalMatcher = TOTAL_PATTERN.matcher(line);
                 if (totalMatcher.find()) {
                     total = parseDouble(totalMatcher.group(1));
+                    Log.d("ReceiptParser", "Gesamtbetrag erkannt: " + total);
                     continue;
                 }
                 Matcher euroMatcher = PRICE_ONLY_PATTERN.matcher(line);
                 if (total == 0.0 && euroMatcher.matches() && line.toLowerCase().contains("eur")) {
                     total = parseDouble(euroMatcher.group(1));
+                    Log.d("ReceiptParser", "Gesamtbetrag erkannt: " + total);
                     continue;
                 }
             }
@@ -90,14 +98,16 @@ public class ReceiptParser {
             Matcher advMatcher = ADVANTAGE_PATTERN.matcher(line);
             if (advMatcher.matches() && lastItem != null) {
                 double adv = parseDouble(advMatcher.group(1));
+                String oldName = lastItem.getName();
                 double newPrice = lastItem.getPrice() + adv;
                 if (newPrice >= 0) {
-                    lastItem = new PurchaseItem(lastItem.getName(), newPrice);
+                    lastItem = new PurchaseItem(oldName, newPrice);
                     items.set(items.size() - 1, lastItem);
                 } else {
                     items.remove(items.size() - 1);
                     lastItem = null;
                 }
+                Log.d("ReceiptParser", "Preisvorteil erkannt f\u00fcr: " + oldName + " -> Neuer Preis: " + newPrice);
                 continue;
             }
 
@@ -105,6 +115,7 @@ public class ReceiptParser {
             if (priceMatcher.matches() && pendingName != null) {
                 double price = parseDouble(priceMatcher.group(1));
                 lastItem = new PurchaseItem(pendingName, price);
+                Log.d("ReceiptParser", "Erkannt: Artikel: " + pendingName + " / Preis: " + price);
                 items.add(lastItem);
                 pendingName = null;
                 continue;
@@ -115,6 +126,7 @@ public class ReceiptParser {
                 String name = itemMatcher.group(1).trim();
                 double price = parseDouble(itemMatcher.group(2));
                 lastItem = new PurchaseItem(name, price);
+                Log.d("ReceiptParser", "Erkannt: Artikel: " + name + " / Preis: " + price);
                 items.add(lastItem);
                 pendingName = null;
                 continue;
@@ -125,6 +137,7 @@ public class ReceiptParser {
                 if (dtMatcher.find()) {
                     DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
                     dateTime = LocalDateTime.parse(dtMatcher.group(1) + " " + dtMatcher.group(2), df);
+                    Log.d("ReceiptParser", "Datum erkannt: " + dateTime);
                     continue;
                 }
                 Matcher dMatcher = DATE_ONLY_PATTERN.matcher(line);
@@ -132,6 +145,7 @@ public class ReceiptParser {
                     DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy");
                     LocalDate d = LocalDate.parse(dMatcher.group(1), df);
                     dateTime = LocalDateTime.of(d, LocalTime.MIDNIGHT);
+                    Log.d("ReceiptParser", "Datum erkannt: " + dateTime);
                     continue;
                 }
             }
