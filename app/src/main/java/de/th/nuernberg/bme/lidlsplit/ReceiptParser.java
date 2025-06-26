@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,6 +79,29 @@ public class ReceiptParser {
             "b 19%",
             "summe"
     );
+
+    // Additional keywords that indicate a line is not an article even if a
+    // price is present. Comparison is done case-insensitively using the lower
+    // case form of the keyword.
+    private static final Set<String> NON_ARTICLE_KEYWORDS = new HashSet<>(Arrays.asList(
+            "netto",
+            "brutto",
+            "zu zahlen",
+            "karte",
+            "summe",
+            "gesamt",
+            "preisvorteil",
+            "a 7%",
+            "b 19%",
+            "mwst",
+            "t-id",
+            "vu-nummer",
+            "bonkopie",
+            "allersberger",
+            "tse",
+            "beleg",
+            "ox4mf"
+    ));
 
     public ReceiptData parse(String text) {
         Log.d("ReceiptParser", "OCR-Rohtext:\n" + text);
@@ -442,29 +467,35 @@ public class ReceiptParser {
                     }
                 }
 
-                if (!Double.isNaN(diff)) {
-                    // diff ist bereits negativ, direkt verwenden
-                    double newPrice = lastItem.getPrice() + diff;
-                    if (newPrice < 0) {
-                        items.remove(items.size() - 1);
-                        Log.d("ReceiptParser", "Artikel entfernt wegen negativem Preis: " + lastItem.getName());
-                        lastItem = null;
-                    } else {
-                        lastItem = new PurchaseItem(lastItem.getName(), newPrice);
-                        items.set(items.size() - 1, lastItem);
-                        Log.d("ReceiptParser", "Preisvorteil angewendet: " + diff + " → Neuer Preis: " + newPrice);
-                    }
+            if (!Double.isNaN(diff)) {
+                // diff ist bereits negativ, direkt verwenden
+                double newPrice = lastItem.getPrice() + diff;
+                if (newPrice < 0) {
+                    items.remove(items.size() - 1);
+                    Log.d("ReceiptParser", "Artikel entfernt wegen negativem Preis: " + lastItem.getName());
+                    lastItem = null;
+                } else {
+                    lastItem = new PurchaseItem(lastItem.getName(), newPrice);
+                    items.set(items.size() - 1, lastItem);
+                    Log.d("ReceiptParser", "Preisvorteil angewendet: " + diff + " → Neuer Preis: " + newPrice);
                 }
-
-                continue; // Preisvorteilzeile nicht als Artikel speichern
             }
-            // --- END ---
 
-            if (priceText != null && rowText.length() > 0) {
-                // Entferne " A" am Ende des Artikelnamens
-                if (rowText.endsWith(" A")) {
-                    rowText = rowText.substring(0, rowText.length() - 2).trim();
-                }
+            continue; // Preisvorteilzeile nicht als Artikel speichern
+        }
+        // --- END ---
+
+        if (containsNonArticleKeyword(rowText)) {
+            Log.d("ReceiptParser", "Übersprungen: " + rowText);
+            pending = null;
+            continue;
+        }
+
+        if (priceText != null && rowText.length() > 0) {
+            // Entferne " A" am Ende des Artikelnamens
+            if (rowText.endsWith(" A")) {
+                rowText = rowText.substring(0, rowText.length() - 2).trim();
+            }
 
                 double price = parseGermanPrice(priceText);
                 lastItem = new PurchaseItem(rowText, price);
@@ -643,6 +674,16 @@ public class ReceiptParser {
         for (String f : FORBIDDEN_ARTICLE_NAMES) {
             String nf = normalize(f);
             if (norm.equals(nf) || norm.contains(nf)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean containsNonArticleKeyword(String text) {
+        String lower = text.toLowerCase();
+        for (String kw : NON_ARTICLE_KEYWORDS) {
+            if (lower.contains(kw)) {
                 return true;
             }
         }
