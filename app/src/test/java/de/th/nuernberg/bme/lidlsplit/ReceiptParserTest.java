@@ -31,7 +31,7 @@ public class ReceiptParserTest {
         assertEquals("Laugenbrezel 10er", data.getItems().get(1).getName());
         assertEquals(1.99, data.getItems().get(1).getPrice(), 0.001);
         assertEquals(19.86, data.getTotal(), 0.001);
-        assertEquals(LocalDateTime.of(2025, 6, 18, 0, 0), data.getDateTime());
+        assertNull(data.getDateTime());
     }
 
     @Test

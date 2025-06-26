@@ -107,7 +107,7 @@ public class ReceiptParser {
                 continue;
             }
 
-            if (line.contains("Zu zahlen")) {
+            if (line.toLowerCase().contains("zu zahlen")) {
                 Matcher m = PRICE_ONLY_PATTERN.matcher(line);
                 if (m.find()) {
                     total = parseDouble(m.group(1));
@@ -116,12 +116,10 @@ public class ReceiptParser {
                     Matcher n = PRICE_ONLY_PATTERN.matcher(next);
                     if (n.matches()) {
                         total = parseDouble(n.group(1));
-                        i++;
                     }
                 }
-                afterTotalLine = true;
                 Log.d("ReceiptParser", "Gesamtbetrag erkannt: " + total);
-                continue;
+                break;
             }
 
             // first try to extract the total amount. Some receipts repeat the
@@ -466,7 +464,7 @@ public class ReceiptParser {
             }
 
             // Gesamtpreis erkennen und ggf. Artikelliste beenden
-            if (line.contains("Zu zahlen")) {
+            if (lower.contains("zu zahlen")) {
                 Matcher pm = priceOnly.matcher(line);
                 if (pm.find()) {
                     gesamtpreis = parseDouble(pm.group());
@@ -475,14 +473,12 @@ public class ReceiptParser {
                     pm = priceOnly.matcher(next);
                     if (pm.matches()) {
                         gesamtpreis = parseDouble(pm.group());
-                        i++;
                     }
                 }
-                afterTotalLine = true;
-                continue;
+                break;
             }
 
-            if (lower.contains("zu zahlen") || lower.contains("summe")) {
+            if (lower.contains("summe")) {
                 Matcher pm = priceOnly.matcher(line);
                 if (pm.find()) {
                     gesamtpreis = parseDouble(pm.group());
