@@ -792,6 +792,14 @@ public class ReceiptParser {
     }
 
     private static double parseGermanPrice(String priceText) {
-        return Double.parseDouble(priceText.replace(".", "").replace(",", "."));
+        // remove all characters except digits, comma, period or minus sign
+        priceText = priceText.replaceAll("[^0-9.,-]", "").trim();
+
+        if (priceText.contains(",")) {
+            // German notation: comma as decimal separator, period as thousands separator
+            priceText = priceText.replace(".", "").replace(",", ".");
+        }
+
+        return Double.parseDouble(priceText);
     }
 }
