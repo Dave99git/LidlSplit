@@ -267,6 +267,11 @@ public class ReceiptParser {
             Matcher itemMatcher = ITEM_PATTERN.matcher(line);
             if (itemMatcher.matches()) {
                 String name = itemMatcher.group(1).trim();
+                // Verhindere Artikel wie "4,99 A"
+                if (name.matches("^\\d+[.,]\\d{2}(\\s*A)?$") ) {
+                    Log.d("ReceiptParser", "Zeile ignoriert: Name ist nur ein Preis: " + name);
+                    continue;
+                }
                 double price = parseDouble(itemMatcher.group(2));
                 lastItem = new PurchaseItem(name, price);
                 Log.d("ReceiptParser", "Erkannt: Artikel: " + name + " / Preis: " + price);
