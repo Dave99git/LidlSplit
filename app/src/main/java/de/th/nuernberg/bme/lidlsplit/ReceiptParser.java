@@ -163,19 +163,7 @@ public class ReceiptParser {
                 continue;
             }
 
-            if (line.toLowerCase().contains("zu zahlen")) {
-                // Versuche, die nächsten 5 Zeilen nach einem Preis zu durchsuchen
-                for (int j = i + 1; j < Math.min(i + 6, lines.length); j++) {
-                    String candidate = lines[j].trim();
-                    Matcher m = PRICE_ONLY_PATTERN.matcher(candidate);
-                    if (m.find()) {
-                        total = parseDouble(m.group(1));
-                        Log.d("ReceiptParser", "Gesamtbetrag erkannt: " + total + " (nach 'zu zahlen')");
-                        break;
-                    }
-                }
-                break;
-            }
+
 
             // first try to extract the total amount. Some receipts repeat the
             // word "Gesamt" on a separate line which should not be treated as
@@ -317,6 +305,18 @@ public class ReceiptParser {
             // codes) to avoid creating bogus articles.
             if (line.matches(".*[A-Za-zÄÖÜäöüß].*")) {
                 pendingName = line;
+            }
+        }
+
+        if (total == 0.0) {
+            for (int i = lines.length - 1; i >= 0; i--) {
+                String line = lines[i].trim();
+                Matcher m = PRICE_ONLY_PATTERN.matcher(line);
+                if (m.find()) {
+                    total = parseDouble(m.group(1));
+                    Log.d("ReceiptParser", "Gesamtbetrag erkannt (Rückwärtssuche): " + total);
+                    break;
+                }
             }
         }
 
