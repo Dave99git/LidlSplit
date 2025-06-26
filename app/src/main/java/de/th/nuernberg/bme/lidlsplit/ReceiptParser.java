@@ -159,6 +159,44 @@ public class ReceiptParser {
     }
 
     /**
+     * Convenience method returning a {@link ParsedReceipt} object for the given
+     * raw receipt text. It internally delegates to {@link #parse(String)} and
+     * converts the {@link PurchaseItem}s into the simpler {@link Artikel}
+     * representation used by some parts of the application.
+     */
+    public static ParsedReceipt parseReceipt(String text) {
+        ReceiptParser parser = new ReceiptParser();
+        ReceiptData data = parser.parse(text);
+
+        // convert items
+        List<Artikel> artikelListe = new ArrayList<>();
+        for (PurchaseItem pi : data.getItems()) {
+            artikelListe.add(new Artikel(pi.getName(), pi.getPrice()));
+        }
+
+        // format date if available
+        String datumStr = null;
+        if (data.getDateTime() != null) {
+            DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            datumStr = data.getDateTime().toLocalDate().format(df);
+        }
+
+        // build address string
+        String adresseStr = null;
+        if (data.getStreet() != null || data.getCity() != null) {
+            StringBuilder sb = new StringBuilder();
+            if (data.getStreet() != null) sb.append(data.getStreet());
+            if (data.getCity() != null) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(data.getCity());
+            }
+            adresseStr = sb.toString();
+        }
+
+        return new ParsedReceipt(artikelListe, datumStr, data.getTotal(), adresseStr);
+    }
+
+    /**
      * Parses a receipt into a simple list of {@link Artikel} objects and
      * populates the static fields {@link #adresse}, {@link #datum} and
      * {@link #gesamtpreis}. This method is intentionally simple and primarily
