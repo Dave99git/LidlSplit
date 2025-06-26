@@ -54,7 +54,7 @@ public class ReceiptParser {
     private static final Pattern ISO_DATE_PATTERN =
             Pattern.compile("(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2})");
     private static final Pattern ADVANTAGE_PATTERN =
-            Pattern.compile("(?i)preisvorteil\\s+(-?\\d+[.,]\\d{2})");
+            Pattern.compile("(?i)preisvorteil.*?(-?\\d+[.,]\\d{2})");
     private static final Pattern DISCOUNT_PATTERN =
             Pattern.compile("^\\-\\d+[.,]\\d{2}$");
     private static final Pattern PRICE_ONLY_PATTERN =
@@ -158,13 +158,13 @@ public class ReceiptParser {
 
             if (!afterTotalLine) {
             Matcher advMatcher = ADVANTAGE_PATTERN.matcher(line);
-            if (advMatcher.matches() && lastItem != null) {
+            if (advMatcher.find() && lastItem != null) {
                 double adv = parseDouble(advMatcher.group(1));
                 String oldName = lastItem.getName();
                 double newPrice = lastItem.getPrice() + adv;
                 lastItem = new PurchaseItem(oldName, newPrice);
                 items.set(items.size() - 1, lastItem);
-                Log.d("ReceiptParser", "Preisvorteil erkannt: " + oldName + " -> Neuer Preis: " + newPrice);
+                Log.d("ReceiptParser", "Preisvorteil erkannt: " + lastItem.getName() + " + " + adv);
                 continue;
             }
 
