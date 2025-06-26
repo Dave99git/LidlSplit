@@ -37,8 +37,13 @@ public class ReceiptParser {
      * MILCH 0,89A
      * </pre>
      */
-    private static final Pattern ITEM_PATTERN =
-            Pattern.compile("^([A-Za-zÄÖÜäöüß\\s\\-\\.]+)\\s+(\\d+[.,]\\d{2})\\s*(?:EUR|A)?$", Pattern.CASE_INSENSITIVE);
+    // Item line: name followed by a price. The name must contain at least one
+    // alphabetic character so that lines consisting only of numbers or symbols
+    // are ignored. Digits are nevertheless allowed within the name (e.g. "10er")
+    // which frequently occurs on Lidl receipts.
+    private static final Pattern ITEM_PATTERN = Pattern.compile(
+            "^([A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß0-9\\s\\-.]*?)\\s+(\\d+[.,]\\d{2})\\s*(?:€|EUR|A)?$",
+            Pattern.CASE_INSENSITIVE);
     private static final Pattern TOTAL_PATTERN =
             Pattern.compile("(?i)(?:gesamtsumme|summe|gesamt|zu\\s+zahlen).*?(\\d+[.,]?\\d*)");
     private static final Pattern DATE_PATTERN =
@@ -51,8 +56,11 @@ public class ReceiptParser {
             Pattern.compile("^\\-\\d+[.,]\\d{2}$");
     private static final Pattern PRICE_ONLY_PATTERN =
             Pattern.compile("(-?\\d+[.,]\\d{2})\\s*(?:€|EUR)?\\s*[A-Z]?$");
-    private static final Pattern IGNORE_LINE_PATTERN =
-            Pattern.compile("(?i)(TA-?Nr|TSE|Bonkopie|Seriennummer|Transaktionsnummer|UST-ID|Kartennr|Seriennr|Signatur|Beleg|www\\.lidl\\.de)");
+    // Lines containing the following keywords should never be treated as item
+    // names. This helps to avoid false positives such as "MWST" or "Karte" when
+    // the OCR output is noisy.
+    private static final Pattern IGNORE_LINE_PATTERN = Pattern.compile(
+            "(?i)(TA-?Nr|TSE|Bonkopie|Seriennummer|Transaktionsnummer|UST-ID|Kartennr|Seriennr|Signatur|Beleg|Kontaktlos|Karte|MWST|^EUR$|www\\.lidl\\.de)");
 
     public ReceiptData parse(String text) {
         Log.d("ReceiptParser", "OCR-Rohtext:\n" + text);
@@ -93,10 +101,9 @@ public class ReceiptParser {
                 continue;
             }
 
-            if (IGNORE_LINE_PATTERN.matcher(line).find()) {
-                continue;
-            }
-
+            // first try to extract the total amount. Some receipts repeat the
+            // word "Gesamt" on a separate line which should not be treated as
+            // an article name.
             if (total == 0.0) {
                 Matcher totalMatcher = TOTAL_PATTERN.matcher(line);
                 if (totalMatcher.find()) {
@@ -110,6 +117,11 @@ public class ReceiptParser {
                     Log.d("ReceiptParser", "Gesamtbetrag erkannt: " + total);
                     continue;
                 }
+            }
+
+            if (IGNORE_LINE_PATTERN.matcher(line).find()) {
+                // Known keywords that are not part of the article list
+                continue;
             }
 
             Matcher advMatcher = ADVANTAGE_PATTERN.matcher(line);
@@ -179,8 +191,12 @@ public class ReceiptParser {
                 }
             }
 
-            // treat as item name if nothing else matched
-            pendingName = line;
+            // treat as potential item name if nothing else matched. Skip lines
+            // that do not contain any letters (e.g. "----" or purely numeric
+            // codes) to avoid creating bogus articles.
+            if (line.matches(".*[A-Za-zÄÖÜäöüß].*")) {
+                pendingName = line;
+            }
         }
 
         for (PurchaseItem item : items) {
