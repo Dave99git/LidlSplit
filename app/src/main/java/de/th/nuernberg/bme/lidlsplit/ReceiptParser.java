@@ -376,7 +376,7 @@ public class ReceiptParser {
             }
 
             Matcher advMatcher = ADVANTAGE_PATTERN.matcher(rowText);
-            if (advMatcher.matches() && lastItem != null) {
+            if (advMatcher.find() && lastItem != null) {
                 double diff = parseGermanPrice(advMatcher.group(1));
                 lastItem = new PurchaseItem(lastItem.getName(), lastItem.getPrice() + diff);
                 items.set(items.size() - 1, lastItem);
