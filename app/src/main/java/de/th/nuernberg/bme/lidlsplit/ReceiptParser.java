@@ -77,7 +77,27 @@ public class ReceiptParser {
             "gesamter preisvorteil",
             "a 7 %",
             "b 19%",
-            "summe"
+            "summe",
+            "netto",
+            "vu-nummer",
+            "ox4mf",
+            "brutto",
+            "kostenlose servicenummer",
+            "details zur filiale",
+            "serial",
+            "kartennr",
+            "betrag",
+            "t-id",
+            "ust-id",
+            "transaktionsnummer",
+            "emv-daten",
+            "kontaktlos",
+            "signaturzähler",
+            "autor",
+            "www.lidl.de",
+            "allersberger",
+            "prüfwert",
+            "online"
     );
 
     // Additional keywords that indicate a line is not an article even if a
@@ -179,6 +199,11 @@ public class ReceiptParser {
             if (IGNORE_LINE_PATTERN.matcher(line).find()) {
                 // Known keywords that are not part of the article list
                 continue;
+            }
+
+            if (isForbiddenArticleName(line)) {
+                pendingName = null;
+                continue; // Zeile überspringen
             }
 
             if (!afterTotalLine) {
