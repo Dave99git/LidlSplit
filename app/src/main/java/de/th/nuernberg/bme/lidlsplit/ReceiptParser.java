@@ -475,7 +475,7 @@ public class ReceiptParser {
                         break;
                     }
                 }
-                break;
+                break; // Ab hier keine Artikel mehr verarbeiten!
             }
 
             // Zeilen wie "Summe" oder "Gesamter Preisvorteil" ignorieren
