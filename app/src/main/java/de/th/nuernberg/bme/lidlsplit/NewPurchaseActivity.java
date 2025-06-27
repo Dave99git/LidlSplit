@@ -41,6 +41,10 @@ public class NewPurchaseActivity extends AppCompatActivity {
     private RecyclerView invoiceRecycler;
     private DebtAdapter debtAdapter;
     private final List<Debt> debts = new ArrayList<>();
+    private Button btnSaveInvoice;
+    private String purchaseDate = "";
+    private double purchaseTotal = 0.0;
+    private boolean invoicePaid = false;
     private TextView tvInvoiceHeader;
     private TextView tvSettledLabel;
     private TextView tvPaidLabel;
@@ -86,6 +90,9 @@ public class NewPurchaseActivity extends AppCompatActivity {
         tvDate = findViewById(R.id.tvDate);
         tvTotal = findViewById(R.id.tvTotal);
         tvPurchaseHeader = findViewById(R.id.tvPurchaseHeader);
+        btnSaveInvoice = findViewById(R.id.btnSaveInvoice);
+        btnSaveInvoice.setOnClickListener(v -> saveInvoice());
+        btnSaveInvoice.setVisibility(View.GONE);
 
         navPurchases = findViewById(R.id.navPurchases);
         navPeople = findViewById(R.id.navPeople);
@@ -131,12 +138,16 @@ public class NewPurchaseActivity extends AppCompatActivity {
         debts.clear();
         debtAdapter.notifyDataSetChanged();
         invoiceRecycler.setVisibility(View.GONE);
+        btnSaveInvoice.setVisibility(View.GONE);
+        invoicePaid = false;
 
         if (meta.getDateTime() != null) {
             DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-            tvDate.setText(df.format(meta.getDateTime()));
+            purchaseDate = df.format(meta.getDateTime());
+            tvDate.setText(purchaseDate);
         } else {
             tvDate.setText("");
+            purchaseDate = "";
         }
 
         StringBuilder addr = new StringBuilder();
@@ -150,8 +161,10 @@ public class NewPurchaseActivity extends AppCompatActivity {
         tvAddress.setText(addr.toString());
 
         if (meta.getTotal() != 0.0) {
+            purchaseTotal = meta.getTotal();
             tvTotal.setText(getString(R.string.total_label, meta.getTotal()));
         } else {
+            purchaseTotal = 0.0;
             tvTotal.setText("");
         }
     }
@@ -196,6 +209,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
         tvSettledLabel.setVisibility(View.VISIBLE);
         invoiceRecycler.setVisibility(View.VISIBLE);
         updatePurchaseStatus();
+        btnSaveInvoice.setVisibility(View.VISIBLE);
     }
 
     private void updatePurchaseStatus() {
@@ -206,7 +220,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
                 break;
             }
         }
-        // Placeholder for status handling; in a real app this would update the purchase entry
+        invoicePaid = allPaid;
         Log.d("PurchaseStatus", allPaid ? "paid" : "open");
     }
 
@@ -251,5 +265,15 @@ public class NewPurchaseActivity extends AppCompatActivity {
                     }
                 })
                 .show();
+    }
+
+    private void saveInvoice() {
+        if (purchaseDate.isEmpty() || purchaseTotal == 0.0) {
+            Toast.makeText(this, "Keine Rechnung", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        dbHelper.addPurchase(purchaseDate, purchaseTotal, invoicePaid);
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 }
