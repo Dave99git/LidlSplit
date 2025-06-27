@@ -23,7 +23,6 @@ import de.th.nuernberg.bme.lidlsplit.ReceiptScanner;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class NewPurchaseActivity extends AppCompatActivity {
@@ -39,8 +38,11 @@ public class NewPurchaseActivity extends AppCompatActivity {
 
     private TextView navPurchases;
     private TextView navPeople;
-    private TextView tvResult;
+    private RecyclerView invoiceRecycler;
+    private DebtAdapter debtAdapter;
+    private final List<Debt> debts = new ArrayList<>();
     private TextView tvInvoiceHeader;
+    private TextView tvSettledLabel;
     private TextView tvPaidLabel;
     private TextView tvAddress;
     private TextView tvDate;
@@ -73,8 +75,12 @@ public class NewPurchaseActivity extends AppCompatActivity {
         Button create = findViewById(R.id.btnCreateInvoice);
         create.setOnClickListener(v -> createInvoice());
 
-        tvResult = findViewById(R.id.tvResult);
+        invoiceRecycler = findViewById(R.id.recyclerInvoice);
+        invoiceRecycler.setLayoutManager(new LinearLayoutManager(this));
+        debtAdapter = new DebtAdapter(debts, this::updatePurchaseStatus);
+        invoiceRecycler.setAdapter(debtAdapter);
         tvInvoiceHeader = findViewById(R.id.text_invoice_header);
+        tvSettledLabel = findViewById(R.id.tvSettledLabel);
         tvPaidLabel = findViewById(R.id.tvPaidLabel);
         tvAddress = findViewById(R.id.tvAddress);
         tvDate = findViewById(R.id.tvDate);
@@ -121,8 +127,10 @@ public class NewPurchaseActivity extends AppCompatActivity {
 
         tvPurchaseHeader.setVisibility(View.VISIBLE);
         tvInvoiceHeader.setVisibility(View.GONE);
-        tvResult.setText("");
-        tvResult.setVisibility(View.GONE);
+        tvSettledLabel.setVisibility(View.GONE);
+        debts.clear();
+        debtAdapter.notifyDataSetChanged();
+        invoiceRecycler.setVisibility(View.GONE);
 
         if (meta.getDateTime() != null) {
             DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
@@ -176,16 +184,30 @@ public class NewPurchaseActivity extends AppCompatActivity {
             return;
         }
 
-        StringBuilder sb = new StringBuilder();
+        debts.clear();
         for (Person p : selectedPersons) {
             if (p.getId() == payerId) continue;
             double value = totals.getOrDefault(p.getId(), 0.0);
-            sb.append(String.format(Locale.getDefault(), "%s schuldet %s %.2f€\n", p.getName(), payer.getName(), value));
+            debts.add(new Debt(p, payer, value));
         }
+        debtAdapter.notifyDataSetChanged();
 
         tvInvoiceHeader.setVisibility(View.VISIBLE);
-        tvResult.setVisibility(View.VISIBLE);
-        tvResult.setText(sb.toString().trim());
+        tvSettledLabel.setVisibility(View.VISIBLE);
+        invoiceRecycler.setVisibility(View.VISIBLE);
+        updatePurchaseStatus();
+    }
+
+    private void updatePurchaseStatus() {
+        boolean allPaid = true;
+        for (Debt d : debts) {
+            if (!d.isSettled()) {
+                allPaid = false;
+                break;
+            }
+        }
+        // Placeholder for status handling; in a real app this would update the purchase entry
+        Log.d("PurchaseStatus", allPaid ? "paid" : "open");
     }
 
     private void activateTab(TextView active, TextView inactive) {

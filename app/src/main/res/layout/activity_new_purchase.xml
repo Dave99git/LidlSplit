@@ -170,28 +170,41 @@
                 android:layout_marginTop="8dp"
                 android:layout_gravity="center_horizontal" />
 
-            <TextView
-                android:id="@+id/text_invoice_header"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/invoice_title"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginStart="16dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginTop="16dp"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/tvResult"
+            <LinearLayout
+                android:id="@+id/layoutInvoiceHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:textSize="16sp"
+                android:orientation="horizontal"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/text_invoice_header"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/invoice_title"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvSettledLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/invoice_settled"
+                    android:textColor="@color/grayText"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerInvoice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp"
+                android:nestedScrollingEnabled="false"
                 android:visibility="gone" />
 
         </LinearLayout>
