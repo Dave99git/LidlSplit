@@ -16,6 +16,8 @@
     <string name="upload_receipt">Upload Kassenbon</string>
     <string name="checkbox_paid">bezahlt</string>
     <string name="create_invoice">Rechnung erstellen</string>
+    <string name="invoice_title">Rechnung</string>
+    <string name="error_choose_payer">Bitte wähle die zahlende Person aus.</string>
     <string name="error_assign_person">Bitte weise allen Artikeln mindestens eine Person zu.</string>
     <string name="dialog_select_persons_title">Personen auswählen</string>
     <string name="total_label">Gesamt: %1$.2f€</string>
