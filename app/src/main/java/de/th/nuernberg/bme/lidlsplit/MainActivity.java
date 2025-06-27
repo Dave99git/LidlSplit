@@ -12,13 +12,15 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.List;
+
+import de.th.nuernberg.bme.lidlsplit.PurchaseAdapter;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView navPurchases;
     private TextView navPeople;
     private AppDatabaseHelper dbHelper;
+    private PurchaseAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,8 +32,13 @@ public class MainActivity extends AppCompatActivity {
         // RecyclerView einrichten
         RecyclerView recyclerView = findViewById(R.id.recyclerPurchases);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        PurchaseAdapter adapter = new PurchaseAdapter(dbHelper.getAllPurchases());
+        PurchaseAdapter adapter = new PurchaseAdapter(dbHelper.getAllPurchases(), dbHelper, purchase -> {
+            Intent intent = new Intent(MainActivity.this, EditPurchaseActivity.class);
+            intent.putExtra("purchase_id", purchase.getId());
+            startActivity(intent);
+        });
         recyclerView.setAdapter(adapter);
+        this.adapter = adapter;
 
         // "+ Einkauf hinzufügen" Button
         Button addButton = findViewById(R.id.btnAddPurchase);
@@ -61,6 +68,14 @@ public class MainActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             finish();
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (adapter != null) {
+            adapter.updateData(dbHelper.getAllPurchases());
+        }
     }
 
     private void activateTab(TextView active, TextView inactive) {

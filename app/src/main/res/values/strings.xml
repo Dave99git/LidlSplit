@@ -23,4 +23,7 @@
     <string name="total_label">Gesamt: %1$.2f€</string>
     <string name="invoice_settled">beglichen</string>
     <string name="save_invoice">Rechnung speichern</string>
+    <string name="confirm_delete_purchase">Möchtest du diesen Einkauf wirklich löschen?</string>
+    <string name="edit_purchase_title">Einkauf bearbeiten</string>
+    <string name="save_changes">Änderungen speichern</string>
 </resources>

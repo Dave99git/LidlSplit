@@ -41,6 +41,11 @@
             android:exported="true"
             android:theme="@style/Theme.LidlSplit" />
 
+        <activity
+            android:name=".EditPurchaseActivity"
+            android:exported="true"
+            android:theme="@style/Theme.LidlSplit" />
+
     </application>
 
 </manifest>

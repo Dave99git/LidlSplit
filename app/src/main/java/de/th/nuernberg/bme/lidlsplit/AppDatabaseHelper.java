@@ -103,15 +103,44 @@ public class AppDatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_PURCHASES, null, values);
     }
 
+    public int updatePurchase(long id, String date, double amount, boolean paid) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PURCHASE_DATE, date);
+        values.put(COLUMN_PURCHASE_AMOUNT, amount);
+        values.put(COLUMN_PURCHASE_PAID, paid ? 1 : 0);
+        return db.update(TABLE_PURCHASES, values, "id=?", new String[]{String.valueOf(id)});
+    }
+
+    public int deletePurchase(long id) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(TABLE_PURCHASES, "id=?", new String[]{String.valueOf(id)});
+    }
+
+    public Purchase getPurchase(long id) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(TABLE_PURCHASES, null, "id=?", new String[]{String.valueOf(id)}, null, null, null);
+        Purchase purchase = null;
+        if (cursor.moveToFirst()) {
+            String date = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PURCHASE_DATE));
+            double amount = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_PURCHASE_AMOUNT));
+            boolean paid = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PURCHASE_PAID)) == 1;
+            purchase = new Purchase(id, date, amount, paid);
+        }
+        cursor.close();
+        return purchase;
+    }
+
     public List<Purchase> getAllPurchases() {
         List<Purchase> purchases = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.query(TABLE_PURCHASES, null, null, null, null, null, "id DESC");
         while (cursor.moveToNext()) {
+            long id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID));
             String date = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PURCHASE_DATE));
             double amount = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_PURCHASE_AMOUNT));
             boolean paid = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PURCHASE_PAID)) == 1;
-            purchases.add(new Purchase(date, String.format(java.util.Locale.getDefault(), "%.2f€", amount), paid));
+            purchases.add(new Purchase(id, date, amount, paid));
         }
         cursor.close();
         return purchases;

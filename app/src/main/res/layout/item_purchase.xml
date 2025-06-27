@@ -15,7 +15,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/tvDate"
@@ -32,6 +33,26 @@
                 android:textColor="@color/black"
                 android:textStyle="bold"
                 android:textSize="20sp" />
+
+            <ImageButton
+                android:id="@+id/btnEditPurchase"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/edit"
+                android:tint="@color/grayText"
+                android:layout_marginStart="8dp"
+                android:contentDescription="Bearbeiten" />
+
+            <ImageButton
+                android:id="@+id/btnDeletePurchase"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/delete"
+                android:tint="@color/grayText"
+                android:contentDescription="Löschen" />
         </LinearLayout>
 
         <TextView
