@@ -39,94 +39,6 @@
             android:contentDescription="@string/filter" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/layoutFilter"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@color/lightGray"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout">
-
-        <RadioGroup
-            android:id="@+id/rgSort"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <RadioButton
-                android:id="@+id/rbSortDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/sort_date" />
-
-            <RadioButton
-                android:id="@+id/rbSortAmount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="@string/sort_amount" />
-        </RadioGroup>
-
-        <Spinner
-            android:id="@+id/spinnerStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:entries="@array/status_filter" />
-
-        <EditText
-            android:id="@+id/etStartDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="@string/start_date"
-            android:focusable="false" />
-
-        <EditText
-            android:id="@+id/etEndDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="@string/end_date"
-            android:focusable="false" />
-
-        <com.google.android.material.slider.RangeSlider
-            android:id="@+id/sliderAmount"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:valueFrom="0"
-            android:valueTo="100"
-            app:values="0,100" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp">
-
-            <Button
-                android:id="@+id/btnApplyFilter"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/filter_apply" />
-
-            <Button
-                android:id="@+id/btnResetFilter"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="@string/filter_reset" />
-        </LinearLayout>
-    </LinearLayout>
-
     <Button
         android:id="@+id/btnAddPurchase"
         android:layout_width="wrap_content"
@@ -137,7 +49,7 @@
         android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutFilter" />
+        app:layout_constraintTop_toBottomOf="@id/headerLayout" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerPurchases"
