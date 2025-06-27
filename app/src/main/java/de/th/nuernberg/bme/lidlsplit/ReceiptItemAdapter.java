@@ -31,6 +31,18 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
         this.persons = persons;
     }
 
+    public Map<Integer, Set<Long>> getAssignments() {
+        return assignments;
+    }
+
+    public void setAssignments(Map<Integer, Set<Long>> newAssignments) {
+        assignments.clear();
+        if (newAssignments != null) {
+            assignments.putAll(newAssignments);
+        }
+        notifyDataSetChanged();
+    }
+
     public Map<Long, Double> calculateTotals() {
         Map<Long, Double> totals = new HashMap<>();
         for (int i = 0; i < items.size(); i++) {
