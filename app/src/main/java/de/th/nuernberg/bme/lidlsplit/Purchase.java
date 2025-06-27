@@ -1,21 +1,27 @@
 package de.th.nuernberg.bme.lidlsplit;
 
 public class Purchase {
+    private final long id;
     private final String date;
-    private final String amount;
+    private final double amount;
     private final boolean paid;
 
-    public Purchase(String date, String amount, boolean paid) {
+    public Purchase(long id, String date, double amount, boolean paid) {
+        this.id = id;
         this.date = date;
         this.amount = amount;
         this.paid = paid;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public String getDate() {
         return date;
     }
 
-    public String getAmount() {
+    public double getAmount() {
         return amount;
     }
 
