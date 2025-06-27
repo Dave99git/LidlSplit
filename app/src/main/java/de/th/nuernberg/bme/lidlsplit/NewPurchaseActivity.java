@@ -142,7 +142,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
         invoicePaid = false;
 
         if (meta.getDateTime() != null) {
-            DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+            DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy");
             purchaseDate = df.format(meta.getDateTime());
             tvDate.setText(purchaseDate);
         } else {
