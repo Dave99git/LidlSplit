@@ -12,23 +12,25 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView navPurchases;
     private TextView navPeople;
+    private AppDatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        dbHelper = new AppDatabaseHelper(this);
+
         // RecyclerView einrichten
         RecyclerView recyclerView = findViewById(R.id.recyclerPurchases);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        PurchaseAdapter adapter = new PurchaseAdapter(createDummyPurchases());
+        PurchaseAdapter adapter = new PurchaseAdapter(dbHelper.getAllPurchases());
         recyclerView.setAdapter(adapter);
 
         // "+ Einkauf hinzufügen" Button
@@ -66,11 +68,5 @@ public class MainActivity extends AppCompatActivity {
         inactive.setBackgroundColor(ContextCompat.getColor(this, R.color.tab_inactive));
     }
 
-    private List<Purchase> createDummyPurchases() {
-        List<Purchase> purchases = new ArrayList<>();
-        purchases.add(new Purchase("29.03.2025", "54,99€", false));
-        purchases.add(new Purchase("30.03.2025", "31,20€", true));
-        purchases.add(new Purchase("31.03.2025", "9,49€", false));
-        return purchases;
-    }
+    // Dummy data method removed
 }

@@ -22,4 +22,5 @@
     <string name="dialog_select_persons_title">Personen auswählen</string>
     <string name="total_label">Gesamt: %1$.2f€</string>
     <string name="invoice_settled">beglichen</string>
+    <string name="save_invoice">Rechnung speichern</string>
 </resources>
