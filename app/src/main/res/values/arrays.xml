@@ -1,0 +1,7 @@
+<resources>
+    <string-array name="status_filter">
+        <item>@string/status_all</item>
+        <item>@string/status_open</item>
+        <item>@string/status_paid</item>
+    </string-array>
+</resources>
