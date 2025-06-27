@@ -1,0 +1,7 @@
+<resources>
+    <string-array name="status_filter_options">
+        <item>alle</item>
+        <item>offen</item>
+        <item>bezahlt</item>
+    </string-array>
+</resources>
