@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.widget.NestedScrollView;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -53,11 +54,14 @@ public class PurchaseDetailActivity extends AppCompatActivity {
     private TextView tvDate;
     private TextView tvTotal;
     private TextView tvPurchaseHeader;
+    private NestedScrollView scrollView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_purchase_detail);
+
+        scrollView = findViewById(R.id.scrollContent);
 
         dbHelper = new AppDatabaseHelper(this);
 
@@ -201,6 +205,7 @@ public class PurchaseDetailActivity extends AppCompatActivity {
         invoiceRecycler.setVisibility(View.VISIBLE);
         updatePurchaseStatus();
         btnSave.setVisibility(View.VISIBLE);
+        scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
     }
 
     private void updatePurchaseStatus() {

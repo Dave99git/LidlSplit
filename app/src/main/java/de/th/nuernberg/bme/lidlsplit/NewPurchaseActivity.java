@@ -8,6 +8,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 import android.util.Log;
+import androidx.core.widget.NestedScrollView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -55,11 +56,14 @@ public class NewPurchaseActivity extends AppCompatActivity {
     private TextView tvDate;
     private TextView tvTotal;
     private TextView tvPurchaseHeader;
+    private NestedScrollView scrollView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_purchase);
+
+        scrollView = findViewById(R.id.scrollContent);
 
         dbHelper = new AppDatabaseHelper(this);
 
@@ -213,6 +217,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
         invoiceRecycler.setVisibility(View.VISIBLE);
         updatePurchaseStatus();
         btnSaveInvoice.setVisibility(View.VISIBLE);
+        scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
     }
 
     private void updatePurchaseStatus() {
