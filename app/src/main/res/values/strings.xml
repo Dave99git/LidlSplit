@@ -26,10 +26,4 @@
     <string name="confirm_delete_purchase">Möchtest du diesen Einkauf wirklich löschen?</string>
     <string name="edit_purchase_title">Einkauf bearbeiten</string>
     <string name="save_changes">Änderungen speichern</string>
-    <string name="filter_apply">Filter anwenden</string>
-    <string name="filter_clear">Filter löschen</string>
-    <string name="sort_date">Datum</string>
-    <string name="sort_amount">Betrag</string>
-    <string name="start_date">Startdatum</string>
-    <string name="end_date">Enddatum</string>
 </resources>
