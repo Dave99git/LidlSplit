@@ -169,7 +169,7 @@ public class PurchaseDetailActivity extends AppCompatActivity {
         debtAdapter.notifyDataSetChanged();
         layoutInvoiceHeader.setVisibility(View.VISIBLE);
         invoiceRecycler.setVisibility(View.VISIBLE);
-        updatePurchaseStatus();
+        updatePaidLabelVisibility();
     }
 
     private void createInvoice() {
@@ -207,17 +207,21 @@ public class PurchaseDetailActivity extends AppCompatActivity {
 
         layoutInvoiceHeader.setVisibility(View.VISIBLE);
         invoiceRecycler.setVisibility(View.VISIBLE);
-        updatePurchaseStatus();
+        updatePaidLabelVisibility();
         btnSave.setVisibility(View.VISIBLE);
         scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
     }
 
     private void updatePurchaseStatus() {
-        boolean allPaid = true;
-        for (Debt d : debts) {
-            if (!d.isSettled()) { allPaid = false; break; }
+        // callback required by DebtAdapter, currently no additional status handling
+    }
+
+    private void updatePaidLabelVisibility() {
+        if (selectedPersons.isEmpty()) {
+            tvPaidLabel.setVisibility(View.GONE);
+        } else {
+            tvPaidLabel.setVisibility(View.VISIBLE);
         }
-        tvPaidLabel.setVisibility(allPaid ? View.VISIBLE : View.GONE);
     }
 
     private void activateTab(TextView active, TextView inactive) {
@@ -252,6 +256,7 @@ public class PurchaseDetailActivity extends AppCompatActivity {
                     personAdapter.updateData(new ArrayList<>(selectedPersons));
                     itemAdapter = new ReceiptItemAdapter(items, selectedPersons);
                     itemRecycler.setAdapter(itemAdapter);
+                    updatePaidLabelVisibility();
                 })
                 .show();
     }
