@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -55,6 +56,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
     private TextView tvDate;
     private TextView tvTotal;
     private TextView tvPurchaseHeader;
+    private NestedScrollView scrollView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -93,6 +95,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
         tvDate = findViewById(R.id.tvDate);
         tvTotal = findViewById(R.id.tvTotal);
         tvPurchaseHeader = findViewById(R.id.tvPurchaseHeader);
+        scrollView = findViewById(R.id.scrollContent);
         btnSaveInvoice = findViewById(R.id.btnSaveInvoice);
         btnSaveInvoice.setOnClickListener(v -> saveInvoice());
         btnSaveInvoice.setVisibility(View.GONE);
@@ -213,6 +216,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
         invoiceRecycler.setVisibility(View.VISIBLE);
         updatePurchaseStatus();
         btnSaveInvoice.setVisibility(View.VISIBLE);
+        scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
     }
 
     private void updatePurchaseStatus() {
