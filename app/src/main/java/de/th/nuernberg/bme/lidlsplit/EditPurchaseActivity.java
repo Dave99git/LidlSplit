@@ -9,6 +9,15 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import de.th.nuernberg.bme.lidlsplit.Article;
+import de.th.nuernberg.bme.lidlsplit.DebtPair;
+import de.th.nuernberg.bme.lidlsplit.Person;
+import de.th.nuernberg.bme.lidlsplit.Purchase;
+
 public class EditPurchaseActivity extends AppCompatActivity {
 
     private AppDatabaseHelper dbHelper;
@@ -16,6 +25,7 @@ public class EditPurchaseActivity extends AppCompatActivity {
     private EditText etDate;
     private EditText etAmount;
     private CheckBox cbPaid;
+    private Purchase purchase;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,7 +41,7 @@ public class EditPurchaseActivity extends AppCompatActivity {
 
         purchaseId = getIntent().getLongExtra("purchase_id", -1);
         if (purchaseId != -1) {
-            Purchase purchase = dbHelper.getPurchase(purchaseId);
+            purchase = dbHelper.getPurchase(purchaseId);
             if (purchase != null) {
                 etDate.setText(purchase.getDate());
                 etAmount.setText(String.format(java.util.Locale.getDefault(), "%.2f", purchase.getAmount()));
@@ -53,7 +63,19 @@ public class EditPurchaseActivity extends AppCompatActivity {
         boolean paid = cbPaid.isChecked();
 
         if (purchaseId == -1) return;
-        dbHelper.updatePurchase(purchaseId, date, amount, paid);
+
+        if (purchase == null) {
+            purchase = dbHelper.getPurchase(purchaseId);
+            if (purchase == null) return;
+        }
+
+        Map<DebtPair, Boolean> debtMap = new HashMap<>(purchase.getDebtStatus());
+        for (DebtPair pair : debtMap.keySet()) {
+            debtMap.put(pair, paid);
+        }
+
+        dbHelper.updatePurchase(purchaseId, date, amount, purchase.getPayerId(),
+                purchase.getPersons(), purchase.getArticles(), purchase.getAssignments(), debtMap);
         finish();
     }
 }
