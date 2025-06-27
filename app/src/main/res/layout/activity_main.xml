@@ -51,19 +51,11 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerLayout" />
 
-    <include
-        android:id="@+id/filterContainer"
-        layout="@layout/layout_purchase_filter"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/btnAddPurchase"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerPurchases"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/filterContainer"
+        app:layout_constraintTop_toBottomOf="@id/btnAddPurchase"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/customFooter" />
