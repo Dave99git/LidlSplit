@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import de.th.nuernberg.bme.lidlsplit.PurchaseAdapter;
+import de.th.nuernberg.bme.lidlsplit.PurchaseDetailActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.recyclerPurchases);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         PurchaseAdapter adapter = new PurchaseAdapter(dbHelper.getAllPurchases(), dbHelper, purchase -> {
-            Intent intent = new Intent(MainActivity.this, EditPurchaseActivity.class);
+            Intent intent = new Intent(MainActivity.this, PurchaseDetailActivity.class);
             intent.putExtra("purchase_id", purchase.getId());
             startActivity(intent);
         });

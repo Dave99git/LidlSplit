@@ -35,6 +35,11 @@ public class PersonSelectAdapter extends RecyclerView.Adapter<PersonSelectAdapte
         return payerId;
     }
 
+    public void setPayerId(long id) {
+        this.payerId = id;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public PersonSelectViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
