@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,6 +48,7 @@ public class PurchaseDetailActivity extends AppCompatActivity {
     private String purchaseDate = "";
     private double purchaseTotal = 0.0;
     private long purchaseId;
+    private LinearLayout layoutInvoiceHeader;
     private TextView tvInvoiceHeader;
     private TextView tvSettledLabel;
     private TextView tvPaidLabel;
@@ -91,6 +93,7 @@ public class PurchaseDetailActivity extends AppCompatActivity {
         invoiceRecycler.setLayoutManager(new LinearLayoutManager(this));
         debtAdapter = new DebtAdapter(debts, this::updatePurchaseStatus);
         invoiceRecycler.setAdapter(debtAdapter);
+        layoutInvoiceHeader = findViewById(R.id.layoutInvoiceHeader);
         tvInvoiceHeader = findViewById(R.id.text_invoice_header);
         tvSettledLabel = findViewById(R.id.tvSettledLabel);
         tvPaidLabel = findViewById(R.id.tvPaidLabel);
@@ -164,6 +167,8 @@ public class PurchaseDetailActivity extends AppCompatActivity {
             debts.add(d);
         }
         debtAdapter.notifyDataSetChanged();
+        layoutInvoiceHeader.setVisibility(View.VISIBLE);
+        invoiceRecycler.setVisibility(View.VISIBLE);
         updatePurchaseStatus();
     }
 
@@ -200,8 +205,7 @@ public class PurchaseDetailActivity extends AppCompatActivity {
         }
         debtAdapter.notifyDataSetChanged();
 
-        tvInvoiceHeader.setVisibility(View.VISIBLE);
-        tvSettledLabel.setVisibility(View.VISIBLE);
+        layoutInvoiceHeader.setVisibility(View.VISIBLE);
         invoiceRecycler.setVisibility(View.VISIBLE);
         updatePurchaseStatus();
         btnSave.setVisibility(View.VISIBLE);
