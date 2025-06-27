@@ -40,6 +40,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
     private TextView navPurchases;
     private TextView navPeople;
     private TextView tvResult;
+    private TextView tvInvoiceHeader;
     private TextView tvPaidLabel;
     private TextView tvAddress;
     private TextView tvDate;
@@ -73,6 +74,7 @@ public class NewPurchaseActivity extends AppCompatActivity {
         create.setOnClickListener(v -> createInvoice());
 
         tvResult = findViewById(R.id.tvResult);
+        tvInvoiceHeader = findViewById(R.id.text_invoice_header);
         tvPaidLabel = findViewById(R.id.tvPaidLabel);
         tvAddress = findViewById(R.id.tvAddress);
         tvDate = findViewById(R.id.tvDate);
@@ -118,8 +120,9 @@ public class NewPurchaseActivity extends AppCompatActivity {
         }
 
         tvPurchaseHeader.setVisibility(View.VISIBLE);
-
+        tvInvoiceHeader.setVisibility(View.GONE);
         tvResult.setText("");
+        tvResult.setVisibility(View.GONE);
 
         if (meta.getDateTime() != null) {
             DateTimeFormatter df = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
@@ -153,15 +156,36 @@ public class NewPurchaseActivity extends AppCompatActivity {
         }
         itemAdapter.notifyDataSetChanged();
         itemRecycler.setVisibility(View.VISIBLE);
+
+        long payerId = personAdapter.getPayerId();
+        if (payerId == -1) {
+            Toast.makeText(this, getString(R.string.error_choose_payer), Toast.LENGTH_LONG).show();
+            return;
+        }
+
         Map<Long, Double> totals = itemAdapter.calculateTotals();
-        StringBuilder sb = new StringBuilder();
+        Person payer = null;
         for (Person p : selectedPersons) {
-            Double value = totals.get(p.getId());
-            if (value != null) {
-                sb.append(String.format(Locale.getDefault(), "%s: %.2f€\n", p.getName(), value));
+            if (p.getId() == payerId) {
+                payer = p;
+                break;
             }
         }
-        tvResult.setText(sb.toString());
+        if (payer == null) {
+            Toast.makeText(this, getString(R.string.error_choose_payer), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (Person p : selectedPersons) {
+            if (p.getId() == payerId) continue;
+            double value = totals.getOrDefault(p.getId(), 0.0);
+            sb.append(String.format(Locale.getDefault(), "%s schuldet %s %.2f€\n", p.getName(), payer.getName(), value));
+        }
+
+        tvInvoiceHeader.setVisibility(View.VISIBLE);
+        tvResult.setVisibility(View.VISIBLE);
+        tvResult.setText(sb.toString().trim());
     }
 
     private void activateTab(TextView active, TextView inactive) {
