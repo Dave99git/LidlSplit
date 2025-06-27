@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -53,6 +54,7 @@ public class PurchaseDetailActivity extends AppCompatActivity {
     private TextView tvDate;
     private TextView tvTotal;
     private TextView tvPurchaseHeader;
+    private NestedScrollView scrollView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -94,6 +96,7 @@ public class PurchaseDetailActivity extends AppCompatActivity {
         tvDate = findViewById(R.id.tvDate);
         tvTotal = findViewById(R.id.tvTotal);
         tvPurchaseHeader = findViewById(R.id.tvPurchaseHeader);
+        scrollView = findViewById(R.id.scrollContent);
         btnSave = findViewById(R.id.btnSaveInvoice);
         btnSave.setOnClickListener(v -> saveChanges());
 
@@ -201,6 +204,7 @@ public class PurchaseDetailActivity extends AppCompatActivity {
         invoiceRecycler.setVisibility(View.VISIBLE);
         updatePurchaseStatus();
         btnSave.setVisibility(View.VISIBLE);
+        scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
     }
 
     private void updatePurchaseStatus() {
